@@ -1,0 +1,57 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+*.sqlite
+*.db
+
+# Ignore generated build/dist directories
+/dist
+/dist/
+/build
+/out
+
+# Ignore TypeScript
+*.js
+*.d.js
+*.d.ts
+*.tsbuildinfo
+tsconfig.json
+tsconfig.node.json
+.eslintrc.cjs
+
+# Ignore vite
+vite.config.ts
+
+# Ignore depencies' lock files
+package-lock.json
+package.json
+yarn.lock
+
+# Ignore Prisma generated files
+prisma/migrations
+migrations/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.vscode/
+.env
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+.idea/
