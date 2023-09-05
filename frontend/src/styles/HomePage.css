@@ -1,0 +1,34 @@
+/* CSS for HomePage */
+.ttt-board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Make the container full height of the viewport */
+}
+
+.tic-tac-toe-image {
+    max-width: 100%;
+    background: none;
+    position: relative; /* Add position relative to the image container */
+}
+
+.play-button {
+    position: absolute;
+    top: 46%;
+    left: 50%;
+    transform: translate(-50%);
+    background: none; /* Transparent background */
+    color: #000; /* Black text color */
+    padding: 20px; /* Increase padding for a larger button */
+    border: none;
+    text-decoration: none;
+    font-size: 8em;
+    font-weight: bolder;
+    cursor: pointer;
+    transition: font-size 0.3s ease; /* Add hover box shadow transition */
+}
+
+.play-button:hover {
+    color: #000;
+    font-size: 8.5em;
+}
