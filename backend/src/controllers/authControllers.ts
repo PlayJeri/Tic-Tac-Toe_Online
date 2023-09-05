@@ -13,6 +13,7 @@ const secretKey = process.env.SECRET_KEY!;
 
 
 export const login = async (req: Request, res: Response) => {
+    console.log('login');
     try {
         const { username, password }: LoginRequestBody = req.body;
         const user = await prisma.user.findFirst({ where: { username: username }});
@@ -59,7 +60,7 @@ export const register = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await prisma.user.create({
             data: {
-                username: username.trim(),
+                username: username.trim().toLowerCase(),
                 password: hashedPassword,
                 wins: 0,
                 losses: 0
