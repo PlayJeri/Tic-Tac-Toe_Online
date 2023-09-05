@@ -13,12 +13,14 @@ dist-ssr
 *.local
 *.sqlite
 *.db
+TODO.md
 
 # Ignore generated build/dist directories
 /dist
 /dist/
 /build
 /out
+public/
 
 # Ignore TypeScript
 *.js
