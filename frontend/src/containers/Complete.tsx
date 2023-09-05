@@ -1,8 +1,10 @@
 import React, { useRef, useState } from "react";
 import GameBoard from "../components/GameBoard";
+import jwtDecode from "jwt-decode";
+import { DecodedAccessToken } from "../utils/types";
 
 
-const Complete: React.FC = () => {
+export const Complete: React.FC = () => {
     const [username, setUsername] = useState('');
     const [connected, setConnected] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
@@ -13,23 +15,46 @@ const Complete: React.FC = () => {
     const [winner, setWinner] = useState<string | null>(null);
 
     const wsServiceRef = useRef<WebSocket | null>(null);
-    
+    const accessToken = localStorage.getItem("access_token");
+
+    // useEffect(() => {
+    //     console.log('sent');
+    //     wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
+
+    //     wsServiceRef.current.onopen = () => {
+    //         console.log('open thing');
+    //     }
+    // }, [accessToken]);
+
     const handleConnect = () => {
         if (connected) {
             return;
         }
+        if (!accessToken) return;
+        const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
+        
         // wsServiceRef.current = new WebSocket('ws://80.220.88.45:80');
-        wsServiceRef.current = new WebSocket('ws://localhost:3000');
+        wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
+
         wsServiceRef.current.onopen = () => {
-            console.log("Connecter to WebSocket server");
-            wsServiceRef.current?.send(JSON.stringify({ type: 'NEW_USER', username }));
-        }
+            console.log("Connected to WebSocket server");
+            wsServiceRef.current?.send(JSON.stringify({
+                type: 'NEW_USER',
+                payload: {
+                    username: decodedToken.username,
+                    accessToken: accessToken,
+                } }));
+            }
+        setUsername(decodedToken.username);
 
         wsServiceRef.current.onmessage = (event) => {
             const { type, message } = JSON.parse(event.data);
+            console.log(type);
+            console.log(message);
             if (type == 'START_GAME') {
+                console.log("game started");
                 setRoomName(message.roomName);
-                if (message.starter === username) {
+                if (message.starter === decodedToken.username) {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
@@ -40,7 +65,7 @@ const Complete: React.FC = () => {
                 if (message.winner) {
                     setWinner(message.winner);
                     setYourTurn(false);
-                } else if (message.playerTurn === username) {
+                } else if (message.playerTurn === decodedToken.username) {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
@@ -50,7 +75,7 @@ const Complete: React.FC = () => {
                 setWinner(null);
                 setGameState(message.gameState);
                 setGameStarted(true);
-                if (message.starter === username) {
+                if (message.starter === decodedToken.username) {
                     setYourTurn(true);
                 }
             }
@@ -69,7 +94,7 @@ const Complete: React.FC = () => {
         if (!yourTurn) {
             return;
         }
-        
+        console.log('sent');
         wsServiceRef.current?.send(JSON.stringify({ 
             type: "NEW_MOVE",
             message: {
@@ -101,12 +126,6 @@ const Complete: React.FC = () => {
             <h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2>
             {!gameStarted && (
                 <>
-                <input
-                    type='text'
-                    placeholder='Enter your username'
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    />
                 <button onClick={handleConnect} disabled={connected}>
                     {connected ? 'Connected' : 'Connect'}
                 </button>
@@ -122,5 +141,3 @@ const Complete: React.FC = () => {
         </>
     )
 }
-
-export default Complete;
