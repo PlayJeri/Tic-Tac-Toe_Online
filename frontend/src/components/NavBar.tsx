@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { LoginModal } from "./LoginModal";
 import { Link } from "react-router-dom";
+import "../styles/NavBar.css"
 
 
 export const NavBar: React.FC = () => {
@@ -27,7 +28,7 @@ export const NavBar: React.FC = () => {
                     <button onClick={handleLoginClick}>Login</button>
                 </div>
             </div>
-            <LoginModal isOpen={showLoginModal} onClose={handleModalClose} />
+            {showLoginModal && <LoginModal isOpen={showLoginModal} onClose={handleModalClose} />}
         </nav>
     )
 }
