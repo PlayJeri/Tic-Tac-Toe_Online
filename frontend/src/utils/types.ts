@@ -5,3 +5,10 @@ export interface StartGameMessage {
         starter: string;
     }
 }
+
+export interface DecodedAccessToken {
+    userId: number;
+    username: string;
+    iat: number;
+    exp: number;
+}
