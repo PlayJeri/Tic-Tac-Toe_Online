@@ -1,6 +1,6 @@
 import express, { Request, Response} from 'express';
 import cors from 'cors';
-import { websocketController } from './websocketController';
+import { upgrade } from './websocketController';
 import { PrismaClient } from '@prisma/client';
 import authRouter from './routers/authRouter';
 
@@ -22,5 +22,5 @@ const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 })
 
-websocketController(server);
+upgrade(server);
 
