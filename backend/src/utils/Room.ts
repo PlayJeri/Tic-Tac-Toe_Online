@@ -24,6 +24,7 @@ export class Room {
         this.nextChar = this.nextChar === "X" ? "O" : "X";
         this.lastIndex = parseInt(index);
         this.currentTurn = this.users.find(user => user.username !== this.currentTurn)?.username || '';
+        console.log(this.gameState);
     }
 
     calculateWinner(username: string): string | null {
@@ -39,7 +40,7 @@ export class Room {
         ]
         for (const line of winningLines) {
             const [a, b, c] = line;
-            if (this.gameState[a] && this.gameState[b] && this.gameState[a] === this.gameState[c]) {
+            if (this.gameState[a] && this.gameState[a] === this.gameState[b] && this.gameState[a] === this.gameState[c]) {
                 return username;
             }
         }
