@@ -3,6 +3,18 @@ import { ConnectedUser } from "./types";
 
 const prisma = new PrismaClient();
 
+export async function getUser(username: string) {
+    try {
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                username: username
+            }
+        })
+        return user
+    } catch (error) {
+        console.error('Error finding user:', error);
+    }
+}
 
 export async function addScores(winner: string, loser: string) {
     try {
