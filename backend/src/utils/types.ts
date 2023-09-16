@@ -22,3 +22,7 @@ export interface RegisterRequestBody {
     password:  string;
     password2: string;
 }
+
+export interface userData {
+    username: string;
+}
