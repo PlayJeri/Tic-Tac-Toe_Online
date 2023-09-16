@@ -3,6 +3,7 @@ import React, { useState } from "react";
 
 export const RegisterPage: React.FC = () => {
 
+    const [errorMsg, setErrorMsg] = useState("");
     const [formData, setFormData] = useState({
         username: "",
         password: "",
@@ -19,11 +20,35 @@ export const RegisterPage: React.FC = () => {
         })
     }
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (formData.password === formData.confirmPassword) {
-            console.log('Registration data:', formData);
+            const response = await fetch("http://localhost:3000/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: formData.username,
+                    password: formData.password,
+                    password2: formData.confirmPassword
+                })
+            })
+            
+            if (response.status === 201) {
+                console.log("Account created successfully");
+                setErrorMsg("");
+                setPasswordsMatch(true);
+            }
+
+            else {
+                const errorData = await response.json();
+                console.log(errorData.error);
+                setErrorMsg(errorData.error);
+                setPasswordsMatch(false);
+            }
         } else {
+            setErrorMsg("Passwords didn't match!");
             setPasswordsMatch(false);
         }
     }
@@ -65,7 +90,7 @@ export const RegisterPage: React.FC = () => {
                 />
             </div>
             {!passwordsMatch && (
-                <p style={{ color: "red" }}>Passwords do not match.</p>
+                <p style={{ color: "red" }}>{errorMsg}</p>
             )}
             <button type="submit">Register</button>
         </form>
