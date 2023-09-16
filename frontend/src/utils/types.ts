@@ -12,3 +12,9 @@ export interface DecodedAccessToken {
     iat: number;
     exp: number;
 }
+
+export interface ProfileInfo {
+    username: string;
+    wins: number;
+    losses: number;
+}
