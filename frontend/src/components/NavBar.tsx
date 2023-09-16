@@ -22,7 +22,7 @@ export const NavBar: React.FC = () => {
                 <div className="logo">Logo here</div>
                 <ul className="nav-links">
                     <li><Link to="/home">Home</Link></li>
-                    <li>Profile</li>
+                    <li><Link to="/profile">Profile</Link></li>
                 </ul>
                 <div className="login-link">
                     <button onClick={handleLoginClick}>Login</button>
