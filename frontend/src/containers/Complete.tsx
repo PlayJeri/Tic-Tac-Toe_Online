@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import GameBoard from "../components/GameBoard";
 import jwtDecode from "jwt-decode";
 import { DecodedAccessToken } from "../utils/types";
+import { ChatBox } from "../components/ChatBox";
 
 
 export const Complete: React.FC = () => {
@@ -14,17 +15,10 @@ export const Complete: React.FC = () => {
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
 
+    const [messages, setMessages] = useState<{ text: string; username: string }[]>([]);
+
     const wsServiceRef = useRef<WebSocket | null>(null);
     const accessToken = localStorage.getItem("access_token");
-
-    // useEffect(() => {
-    //     console.log('sent');
-    //     wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
-
-    //     wsServiceRef.current.onopen = () => {
-    //         console.log('open thing');
-    //     }
-    // }, [accessToken]);
 
     const handleConnect = () => {
         if (connected) {
@@ -32,12 +26,14 @@ export const Complete: React.FC = () => {
         }
         if (!accessToken) return;
         const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
+        console.log(decodedToken.username);
         
         // wsServiceRef.current = new WebSocket('ws://80.220.88.45:80');
         wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
 
         wsServiceRef.current.onopen = () => {
             console.log("Connected to WebSocket server");
+            console.log(`Username is ${decodedToken.username}`)
             wsServiceRef.current?.send(JSON.stringify({
                 type: 'NEW_USER',
                 payload: {
@@ -49,8 +45,7 @@ export const Complete: React.FC = () => {
 
         wsServiceRef.current.onmessage = (event) => {
             const { type, message } = JSON.parse(event.data);
-            console.log(type);
-            console.log(message);
+            console.log(type, "|", message)
             if (type == 'START_GAME') {
                 console.log("game started");
                 setRoomName(message.roomName);
@@ -69,6 +64,10 @@ export const Complete: React.FC = () => {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
+                if (message.draw) {
+                    setWinner('draw')
+                    setYourTurn(false)
+                }
             }
             if (type === 'GAME_RESET') {
                 console.log('Game reset');
@@ -78,6 +77,12 @@ export const Complete: React.FC = () => {
                 if (message.starter === decodedToken.username) {
                     setYourTurn(true);
                 }
+            }
+            if (type === 'CHAT_MESSAGE') {
+                console.log("Voi nyt vittu perkele")
+                console.log(...messages)
+                // setMessages([...messages, { text: message.message, username: message.username }]);
+                setMessages(prevMessages => [...prevMessages, { text: message.message, username: message.username }]);
             }
         }
     
@@ -90,14 +95,12 @@ export const Complete: React.FC = () => {
     }
     
     const handleClick = (index: number): void => {
-        console.log('handle click');
         if (!yourTurn) {
             return;
         }
-        console.log('sent');
         wsServiceRef.current?.send(JSON.stringify({ 
             type: "NEW_MOVE",
-            message: {
+            payload: {
                 roomName: roomName,
                 index: index,
                 username: username
@@ -110,11 +113,16 @@ export const Complete: React.FC = () => {
     const handleResetGame = (): void => {
         wsServiceRef.current?.send(JSON.stringify({
             type: "RESET_GAME",
-            message: {
+            payload: {
                 username: username,
                 roomName: roomName
             }
         }))
+    }
+
+    const vehje = (kakka: string, kikki: string) => {
+        setMessages([...messages, { text: kakka, username: kikki }])
+        console.log(messages.length);
     }
 
 
@@ -122,7 +130,7 @@ export const Complete: React.FC = () => {
         <>
         <div className="lobby">
             <h1>Welcome to play tic-tac-toe</h1>
-            <h2>{winner ? `${winner} wins!` : null}</h2>
+            <h2>{winner ? `${winner}` : null}{winner && winner !== 'draw' ? " wins!" : ""}</h2>
             <h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2>
             {!gameStarted && (
                 <>
@@ -138,6 +146,12 @@ export const Complete: React.FC = () => {
                 <GameBoard squares={gameState} onClick={handleClick} />
             </div>
         </div> : null}
+        <ChatBox
+            wsService={wsServiceRef}
+            username={username}
+            roomName={roomName}
+            messages={messages}
+        />
         </>
     )
 }
