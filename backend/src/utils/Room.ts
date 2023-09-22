@@ -27,7 +27,12 @@ export class Room {
         console.log(this.gameState);
     }
 
-    calculateWinner(username: string): string | null {
+    checkDraw(): boolean {
+        return !this.gameState.includes(null);
+    }
+
+    calculateWinner(connectedUser: ConnectedUser): ConnectedUser | null {
+        const username = connectedUser.username;
         const winningLines: number[][] = [
             [0, 1, 2],
             [3, 4, 5],
@@ -41,7 +46,7 @@ export class Room {
         for (const line of winningLines) {
             const [a, b, c] = line;
             if (this.gameState[a] && this.gameState[a] === this.gameState[b] && this.gameState[a] === this.gameState[c]) {
-                return username;
+                return connectedUser;
             }
         }
         return null;
