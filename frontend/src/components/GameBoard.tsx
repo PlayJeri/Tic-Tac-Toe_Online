@@ -11,7 +11,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ squares, onClick }) => {
 
     const renderSquare = (index: number): JSX.Element => {
         return (
-            <button className='square' onClick={() => onClick(index)}>
+            <button className='square' onClick={() => onClick(index)} disabled={board[index] !== null}>
                 {board[index]}
             </button>
         )
