@@ -16,4 +16,5 @@ model User {
   password String
   wins Int
   losses Int
+  timePlayedSeconds Int @default(0)
 }
