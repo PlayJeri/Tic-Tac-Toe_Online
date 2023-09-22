@@ -1,4 +1,4 @@
-import WebSocket, { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import jwt, { verify } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Server as HttpServer, IncomingMessage } from 'http';
@@ -39,6 +39,9 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
                 break;
             case MessageType.RESET_GAME:
                 handleResetGame(ws, data);
+                break;
+            case MessageType.CHAT_MESSAGE:
+                handleChatMessage(ws, data);
                 break;
             default:
                 console.log("Unknown message type: ", type);
@@ -98,8 +101,12 @@ const handleClose = (ws: WebSocket) => {
 }
 
 const handleNewUserMessage = (ws: WebSocket, data: string) => {
-    const { username } = JSON.parse(data).payload;
+    const { payload: { username } } = JSON.parse(data);
     console.log(username, "joined");
+
+    const connectionStartTime = Date.now();
+    ws.connectionStartTime = connectionStartTime;
+
     connectedUsers.push({ ws, username: username });
 
     if (connectedUsers.length >= 2) {
@@ -124,17 +131,19 @@ const handleNewUserMessage = (ws: WebSocket, data: string) => {
 }
 
 const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
-    const { roomName, index, username }: NewMove = JSON.parse(data).message;
+    const { roomName, index, username }: NewMove = JSON.parse(data).payload;
     const roomToUpdate = rooms.find(room => room.name === roomName);
 
     if (roomToUpdate) {
         roomToUpdate.setGameState(index);
         const roomUsers = roomToUpdate.users;
-        const winner = roomToUpdate.calculateWinner(username)
-        const loser = roomUsers.find(user => user.username !== winner);
+        const user = roomUsers.find(user => user.username === username);
+        const winner = roomToUpdate.calculateWinner(user!)
+        const draw = roomToUpdate.checkDraw();
         if (winner) {
+            const loser = roomUsers.find(user => user.username !== username);
             console.log('winner');
-            addScores(winner, loser!.username)
+            addScores(winner, loser!)
         }
         
         roomUsers.forEach(user => {
@@ -145,16 +154,18 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
                     gameState: roomToUpdate.gameState,
                     lastIndex: roomToUpdate.lastIndex,
                     nextCharacter: roomToUpdate.nextChar,
-                    winner: winner
+                    winner: winner?.username,
+                    draw: draw
                 }
             }
+            user.ws.connectionStartTime
             user.ws.send(JSON.stringify(message));
         })
     }  
 }
 
 const handleResetGame = (ws: WebSocket, data: string) => {
-    const { username, roomName } = JSON.parse(data).message;
+    const { username, roomName } = JSON.parse(data).payload;
     const roomToUpdate = rooms.find(room => room.name === roomName);
 
     if (roomToUpdate) {
@@ -173,8 +184,30 @@ const handleResetGame = (ws: WebSocket, data: string) => {
                     }
                 }
                 user.ws.send(JSON.stringify(message));
+                user.ws.connectionStartTime = Date.now();
             })
         }
+    }
+}
+
+const handleChatMessage = (ws: WebSocket, data: string) => {
+    const { newMessage, roomName, username } = JSON.parse(data).payload;
+    const chatRoom = rooms.find(room => room.name === roomName);
+
+    if (chatRoom) {
+        const roomUsers = chatRoom.users;
+
+        roomUsers.forEach(user => {
+            const message = {
+                type: 'CHAT_MESSAGE',
+                message: {
+                    message: newMessage,
+                    username: username
+                }
+            }
+            user.ws.send(JSON.stringify(message));
+            console.log(JSON.stringify(message), "paskavittu");
+        })
     }
 }
 
