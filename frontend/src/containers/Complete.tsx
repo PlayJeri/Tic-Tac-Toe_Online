@@ -79,9 +79,6 @@ export const Complete: React.FC = () => {
                 }
             }
             if (type === 'CHAT_MESSAGE') {
-                console.log("Voi nyt vittu perkele")
-                console.log(...messages)
-                // setMessages([...messages, { text: message.message, username: message.username }]);
                 setMessages(prevMessages => [...prevMessages, { text: message.message, username: message.username }]);
             }
         }
@@ -119,12 +116,6 @@ export const Complete: React.FC = () => {
             }
         }))
     }
-
-    const vehje = (kakka: string, kikki: string) => {
-        setMessages([...messages, { text: kakka, username: kikki }])
-        console.log(messages.length);
-    }
-
 
     return (
         <>
