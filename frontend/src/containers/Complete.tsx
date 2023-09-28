@@ -3,6 +3,7 @@ import GameBoard from "../components/GameBoard";
 import jwtDecode from "jwt-decode";
 import { DecodedAccessToken } from "../utils/types";
 import { ChatBox } from "../components/ChatBox";
+import '../styles/Complete.css';
 
 
 export const Complete: React.FC = () => {
@@ -11,6 +12,7 @@ export const Complete: React.FC = () => {
     const [gameStarted, setGameStarted] = useState(false);
     const [yourTurn, setYourTurn] = useState(false);
     const [roomName, setRoomName] = useState("");
+    const [searching, setSearching] = useState(false);
 
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export const Complete: React.FC = () => {
         }
         if (!accessToken) return;
         const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
-        console.log(decodedToken.username);
+        setSearching(true);
         
         // wsServiceRef.current = new WebSocket('ws://80.220.88.45:80');
         wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
@@ -48,6 +50,7 @@ export const Complete: React.FC = () => {
             console.log(type, "|", message)
             if (type == 'START_GAME') {
                 console.log("game started");
+                setSearching(false);
                 setRoomName(message.roomName);
                 if (message.starter === decodedToken.username) {
                     setYourTurn(true);
@@ -126,17 +129,29 @@ export const Complete: React.FC = () => {
             {!gameStarted && (
                 <>
                 <button onClick={handleConnect} disabled={connected}>
-                    {connected ? 'Connected' : 'Connect'}
+                    { searching
+                        ? <div className="search-container">
+                            <p>Searching...</p>
+                            <div className="spinner"></div>
+                        </div>
+                         
+                        : <p>Find a match</p>
+                    }
                 </button>
-            </>
-        )}
+                </>
+            )}
         </div>
-        {gameStarted ?         <div className="game">
-            { winner ? <button onClick={handleResetGame}>Play again</button> : null}
-            <div className="game-board">
-                <GameBoard squares={gameState} onClick={handleClick} />
-            </div>
-        </div> : null}
+        { gameStarted ? 
+            <div className="game">
+                { winner 
+                    ? <button onClick={handleResetGame}>Play again</button> 
+                    : null
+                }
+                <div className="game-board">
+                    <GameBoard squares={gameState} onClick={handleClick} />
+                </div>
+            </div> 
+        : null}
         <ChatBox
             wsService={wsServiceRef}
             username={username}
