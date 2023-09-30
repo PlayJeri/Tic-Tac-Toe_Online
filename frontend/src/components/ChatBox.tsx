@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChatProps } from '../utils/types';
+import "../styles/ChatBox.css";
 
 export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsService }) => {
 
@@ -10,7 +11,7 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsS
     };
 
     const handleSendMessage = () => {
-        if (newMessage) {
+        if (newMessage.trim() !== '') {
             wsService.current?.send(
                 JSON.stringify({
                     type: "CHAT_MESSAGE",
@@ -21,21 +22,35 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsS
                     }
                 })
             )
-            setNewMessage('');
+            setNewMessage('')
         }
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    }
+
     return (
-        <div>
+        <div className='chat-box'>
             <div className='chat-messages'>
                 {messages.map((message, index) => (
-                    <div key={index}>
+                    <div key={index} className={`chat-message ${
+                        message.username === username ? 'right' : 'left'
+                    }`}>
                         <strong>{message.username}:</strong> {message.text}
                     </div>
                 ))}
             </div>
             <div className='chat-input'>
-                <input type='text' value={newMessage} onChange={handleMessageChange} />
+                <input 
+                    type='text'
+                    value={newMessage}
+                    onChange={handleMessageChange}
+                    onKeyDown={handleKeyDown}
+                />
                 <button onClick={handleSendMessage}>Send</button>
             </div>
         </div>
