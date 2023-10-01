@@ -21,7 +21,7 @@ export const NavBar: React.FC = () => {
             <div className="nav-container">
                 <div className="logo">Logo here</div>
                 <ul className="nav-links">
-                    <li><Link to="/home">Home</Link></li>
+                    <li><Link to="/">Home</Link></li>
                     <li><Link to="/profile">Profile</Link></li>
                 </ul>
                 <div className="login-link">
