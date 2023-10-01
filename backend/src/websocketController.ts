@@ -28,6 +28,7 @@ wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage
 
 const handleIncomingMessage = (data: string, ws: WebSocket) => {
     console.log("data", data.toString());
+    console.log("Number of rooms is ", rooms.length);
     try {
         const { type } = JSON.parse(data);
         switch(type) {
@@ -170,9 +171,8 @@ const handleResetGame = (ws: WebSocket, data: string) => {
 
     if (roomToUpdate) {
         const reset = roomToUpdate.resetGame(username);
+        const roomUsers = roomToUpdate.users;
         if (reset) {
-            const roomUsers = roomToUpdate.users;
-
             roomUsers.forEach(user => {
                 const message = {
                     type: 'GAME_RESET',
@@ -186,6 +186,16 @@ const handleResetGame = (ws: WebSocket, data: string) => {
                 user.ws.send(JSON.stringify(message));
                 user.ws.connectionStartTime = Date.now();
             })
+        } else {
+            const messageReceiver = roomUsers.find(user => user.username !== username);
+            const message = {
+                type: 'PLAY_AGAIN',
+                message: {
+                    username: username,
+                    text: `${username} wants to play again!`
+                }
+            };
+            messageReceiver?.ws.send(JSON.stringify(message));
         }
     }
 }
@@ -206,7 +216,6 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
                 }
             }
             user.ws.send(JSON.stringify(message));
-            console.log(JSON.stringify(message), "paskavittu");
         })
     }
 }
