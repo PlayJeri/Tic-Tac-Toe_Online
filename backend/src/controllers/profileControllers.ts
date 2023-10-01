@@ -1,11 +1,10 @@
-import { Response } from "express"
-import { RequestCustom } from "../utils/extensions";
+import { Request, Response } from "express"
 import { getUser } from "../utils/prismaHelpers";
 import { userData } from "../utils/types";
 import jwt from "jsonwebtoken";
 
 
-export const getProfile = async (req: RequestCustom, res: Response) => {
+export const getProfile = async (req: Request, res: Response) => {
     const { username } = req.decodedToken as userData;
 
     const user = await getUser(username);
@@ -16,6 +15,7 @@ export const getProfile = async (req: RequestCustom, res: Response) => {
     return res.status(200).json({
         username: user.username,
         wins: user.wins,
-        losses: user.losses
+        losses: user.losses,
+        secondsPlayed: user.timePlayedSeconds
     });
 }
