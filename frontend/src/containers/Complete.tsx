@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import GameBoard from "../components/GameBoard";
 import jwtDecode from "jwt-decode";
 import { DecodedAccessToken } from "../utils/types";
+import { NavBar } from "../components/NavBar";
 import { ChatBox } from "../components/ChatBox";
 import '../styles/Complete.css';
 
@@ -13,6 +14,7 @@ export const Complete: React.FC = () => {
     const [yourTurn, setYourTurn] = useState(false);
     const [roomName, setRoomName] = useState("");
     const [searching, setSearching] = useState(false);
+    const [playAgain, setPlayAgain] = useState("");
 
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
@@ -59,7 +61,10 @@ export const Complete: React.FC = () => {
                 setGameStarted(true);
             }
             if (type === 'GAME_UPDATED') {
-                console.log('game update message');
+                if (message.draw) {
+                    setWinner('draw')
+                    setYourTurn(false)
+                }
                 if (message.winner) {
                     setWinner(message.winner);
                     setYourTurn(false);
@@ -67,10 +72,6 @@ export const Complete: React.FC = () => {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
-                if (message.draw) {
-                    setWinner('draw')
-                    setYourTurn(false)
-                }
             }
             if (type === 'GAME_RESET') {
                 console.log('Game reset');
@@ -80,9 +81,14 @@ export const Complete: React.FC = () => {
                 if (message.starter === decodedToken.username) {
                     setYourTurn(true);
                 }
+                setPlayAgain("");
             }
             if (type === 'CHAT_MESSAGE') {
                 setMessages(prevMessages => [...prevMessages, { text: message.message, username: message.username }]);
+            }
+            if (type === 'PLAY_AGAIN') {
+                console.log(message);
+                setPlayAgain(message.text);
             }
         }
     
@@ -122,10 +128,10 @@ export const Complete: React.FC = () => {
 
     return (
         <>
+        <NavBar />
+        <h1>Welcome to play tic-tac-toe</h1>
+        { !gameStarted ?
         <div className="lobby">
-            <h1>Welcome to play tic-tac-toe</h1>
-            <h2>{winner ? `${winner}` : null}{winner && winner !== 'draw' ? " wins!" : ""}</h2>
-            <h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2>
             {!gameStarted && (
                 <>
                 <button onClick={handleConnect} disabled={connected}>
@@ -141,23 +147,33 @@ export const Complete: React.FC = () => {
                 </>
             )}
         </div>
+        : null
+        }
         { gameStarted ? 
-            <div className="game">
-                { winner 
-                    ? <button onClick={handleResetGame}>Play again</button> 
-                    : null
-                }
-                <div className="game-board">
-                    <GameBoard squares={gameState} onClick={handleClick} />
+            <div className="game-container">
+                <div className="game">
+                <h2>
+                    {winner ? `${winner}` : null}
+                    {winner && winner !== 'draw' ? " wins!" : ""}
+                    {winner ? <button onClick={handleResetGame}>Play again</button> : null}
+                </h2>
+                <h2>{playAgain ? playAgain : null}</h2>
+                    {winner
+                        ? null
+                        :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
+                    }
+                    <div className="game-board">
+                        <GameBoard squares={gameState} onClick={handleClick} />
+                    </div>
                 </div>
-            </div> 
+                <ChatBox
+                    wsService={wsServiceRef}
+                    username={username}
+                    roomName={roomName}
+                    messages={messages}
+                />
+            </div>
         : null}
-        <ChatBox
-            wsService={wsServiceRef}
-            username={username}
-            roomName={roomName}
-            messages={messages}
-        />
         </>
     )
 }
