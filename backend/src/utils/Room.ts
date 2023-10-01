@@ -53,8 +53,8 @@ export class Room {
     }
 
     resetGame(username: string): boolean {
+        if (this.playAgain.includes(username)) return false;
         this.playAgain.push(username);
-        console.log(`Reset length: ${this.playAgain.length}`)
         if (this.playAgain.length < 2) return false;
         this.gameState = Array(9).fill(null);
         this.currentTurn = this.users[Math.floor(Math.random() * 2)].username || '';
