@@ -17,6 +17,7 @@ export interface ProfileInfo {
     username: string;
     wins: number;
     losses: number;
+    secondsPlayed: number;
 }
 
 export interface ChatProps {
