@@ -29,6 +29,14 @@ export const ProfilePage = () => {
 
         fetchData();
     }, [])
+
+    const formatGameTime = (timePlayedSeconds: number): string =>  {
+      const hours = Math.floor(timePlayedSeconds / 3600);
+      const minutes = Math.floor((timePlayedSeconds % 3600) / 60);
+      const seconds = timePlayedSeconds % 60;
+
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
     return (
         <>
         <NavBar />
@@ -38,6 +46,7 @@ export const ProfilePage = () => {
           <p>Username: {userData.username}</p>
           <p>Wins: {userData.wins}</p>
           <p>Losses: {userData.losses}</p>
+          <p>Time Played: {formatGameTime(userData.secondsPlayed)}</p>
         </div>
       ) : (
         <p>Loading profile data...</p>
