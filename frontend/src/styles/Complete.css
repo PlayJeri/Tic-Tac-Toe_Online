@@ -1,3 +1,13 @@
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game {
+    width: 50%;
+}
+
 .search-container {
     display: flex;
     align-items: center;
