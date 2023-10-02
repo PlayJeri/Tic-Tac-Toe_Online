@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import GameBoard from "../components/GameBoard";
 import jwtDecode from "jwt-decode";
 import { DecodedAccessToken } from "../utils/types";
@@ -15,6 +15,7 @@ export const Complete: React.FC = () => {
     const [roomName, setRoomName] = useState("");
     const [searching, setSearching] = useState(false);
     const [playAgain, setPlayAgain] = useState("");
+    const [message, setMessage] = useState("");
 
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
@@ -90,6 +91,11 @@ export const Complete: React.FC = () => {
                 console.log(message);
                 setPlayAgain(message.text);
             }
+            if (type === 'OPPONENT_DISCONNECTED') {
+                setWinner(username);
+                setYourTurn(false);
+                setMessage("Opponent disconnected.")
+            }
         }
     
         wsServiceRef.current.onclose = () => {
@@ -99,6 +105,24 @@ export const Complete: React.FC = () => {
         }
         
     }
+
+    useEffect(() => {
+
+        const cleanup = () => {
+            const ws = wsServiceRef.current;
+            console.log(ws, ws?.readyState);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        }
+
+        window.addEventListener('unload', cleanup);
+
+        return () => {
+            window.removeEventListener('unload', cleanup);
+            cleanup();
+        }
+    }, [])
     
     const handleClick = (index: number): void => {
         if (!yourTurn) {
@@ -154,7 +178,8 @@ export const Complete: React.FC = () => {
                 <div className="game">
                 <h2>
                     {winner ? `${winner}` : null}
-                    {winner && winner !== 'draw' ? " wins!" : ""}
+                    {winner && winner !== 'draw' ? " wins! " : ""}
+                    {message ? message : null}
                     {winner ? <button onClick={handleResetGame}>Play again</button> : null}
                 </h2>
                 <h2>{playAgain ? playAgain : null}</h2>
