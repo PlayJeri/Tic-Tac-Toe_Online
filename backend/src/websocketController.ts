@@ -6,6 +6,7 @@ import { MessageType } from "./utils/clientMessages";
 import { ConnectedUser, NewMove } from "./utils/types";
 import { Room } from "./utils/Room";
 import { addScores } from "./utils/prismaHelpers";
+import { json } from "express";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY!;
@@ -98,6 +99,29 @@ const handleClose = (ws: WebSocket) => {
         const username = connectedUsers[userIndex].username;
         console.log(`User disconnected" ${username}`)
         connectedUsers.splice(userIndex, 1);
+    }
+    const roomIndex = rooms.findIndex(room => room.users[0].ws === ws || room.users[1].ws === ws);
+    const roomUsers = rooms[roomIndex]?.users
+    if (roomIndex !== -1) {
+        console.log("number of rooms = ", rooms.length)
+
+        const disconnectedUser = roomUsers.find(user => user.ws === ws);
+        const otherUser = roomUsers.find(user => user.ws !== ws);
+
+        const opponentDisconnectedMessage = {
+            type: 'OPPONENT_DISCONNECTED'
+        }
+
+        otherUser?.ws.send(JSON.stringify(opponentDisconnectedMessage));
+
+        rooms.splice(roomIndex, 1);
+
+        console.log("number of rooms = ", rooms.length);
+        console.log('room closed');
+
+        if (otherUser && disconnectedUser) {
+            addScores(otherUser, disconnectedUser);
+        }
     }
 }
 
