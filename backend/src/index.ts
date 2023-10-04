@@ -1,4 +1,4 @@
-import express, { Request, Response} from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { upgrade } from './websocketController';
 import { PrismaClient } from '@prisma/client';
@@ -6,7 +6,6 @@ import authRouter from './routers/authRouter';
 import profileRouter from './routers/profileRouter';
 
 const PORT = 3000;
-const prisma = new PrismaClient();
 const app = express();
 
 app.use(cors({ origin: "*" }));
