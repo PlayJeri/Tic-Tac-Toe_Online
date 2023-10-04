@@ -1,10 +1,9 @@
-import { NextFunction, Response } from "express";
-import { RequestCustom } from "./extensions";
+import { NextFunction, Response, Request } from "express";
 import { secretKey } from "../controllers/authControllers";
 import jwt from "jsonwebtoken";
 
 
-export const validateTokenMiddleware = (req: RequestCustom, res: Response, next: NextFunction) => {
+export const validateTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.replace("Bearer ", "");
 
     if (!token) {
