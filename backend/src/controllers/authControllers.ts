@@ -9,7 +9,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const prisma = new PrismaClient();
-const secretKey = process.env.SECRET_KEY!;
+export const secretKey = process.env.SECRET_KEY!;
 
 
 export const login = async (req: Request, res: Response) => {
@@ -67,7 +67,7 @@ export const register = async (req: Request, res: Response) => {
             }
         })
         if (!user) {
-            return res.status(500).json({ error: "User creation in database failed" });
+            return res.status(500).json({ error: "User creation failed" });
         }
 
         return res.status(201).json({ success: `User: ${username.trim()} created` });
@@ -76,4 +76,9 @@ export const register = async (req: Request, res: Response) => {
         console.error('Register error: ', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
+}
+
+export const validateLogin = async (req: Request, res: Response) => {
+    console.log("Login validated");
+    return res.sendStatus(200);
 }
