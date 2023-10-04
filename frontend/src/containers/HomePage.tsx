@@ -1,6 +1,5 @@
-import React from "react";
 import { NavBar } from "../components/NavBar";
-import TicTacToeImage from "../../public/ttt-bg.png";
+import TicTacToeImage from "../../src/assets/ttt-bg.png";
 import "../styles/HomePage.css";
 import { Link } from "react-router-dom";
 
