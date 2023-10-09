@@ -3,6 +3,24 @@ import { ConnectedUser } from "./types";
 
 const prisma = new PrismaClient();
 
+export async function updateUserPassword(username: string, newHashedPassword: string): Promise<Error | null> {
+    try {
+        await prisma.user.update({
+            where: {
+                username: username
+            },
+            data: {
+                password: newHashedPassword
+            }
+        });
+        return null
+    } catch (error: any) {
+        console.error(error);
+        return error       
+    }
+}
+
+
 export async function getUser(username: string) {
     try {
         const user = await prisma.user.findUniqueOrThrow({
