@@ -40,17 +40,29 @@ export const ProfilePage = () => {
     return (
         <>
         <NavBar />
-        <h1>User Profile</h1>
+        <div className="container text-white">
+        <h1 className='text-center my-4'>{userData?.username} Profile</h1>
       {userData ? (
-        <div>
-          <p>Username: {userData.username}</p>
-          <p>Wins: {userData.wins}</p>
-          <p>Losses: {userData.losses}</p>
-          <p>Time Played: {formatGameTime(userData.secondsPlayed)}</p>
+        <div className="col-6 mx-auto">
+        <ul className="list-group border-success">
+        <li className="list-group-item border-black d-flex justify-content-between align-items-center">
+          Wins
+          <span className="badge bg-primary rounded-pill">{userData.wins}</span>
+        </li>
+        <li className="list-group-item border-black d-flex justify-content-between align-items-center">
+          Losses
+          <span className="badge bg-primary rounded-pill">{userData.losses}</span>
+        </li>
+        <li className="list-group-item border-black d-flex justify-content-between align-items-center">
+          Time Played
+          <span className="badge bg-primary rounded-pill">{formatGameTime(userData.secondsPlayed)}</span>
+        </li>
+      </ul>
         </div>
       ) : (
         <p>Loading profile data...</p>
-      )}
+        )}
+        </div>
         </>
     )
 }
