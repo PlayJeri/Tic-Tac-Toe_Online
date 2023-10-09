@@ -39,20 +39,26 @@ export const NavBar: React.FC = () => {
     }, [])
 
 
-    return(
-        <nav>
-            <div className="nav-container">
-                <div className="logo">Logo here</div>
-                <ul className="nav-links">
-                    <li><Link to="/">Home</Link></li>
-                    <li><Link to="/profile">Profile</Link></li>
-                </ul>
-                <div className="login-link">
-                    <button onClick={handleLoginClick}>Login</button>
-                </div>
+    return (
+        <nav className="navbar navbar-expand-lg bg-dark-subtle">
+          <div className="container-fluid">
+            <a className="navbar-brand" href="#">Navbar</a>
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse">
+              <span className="navbar-toggler-icon"></span>
+            </button>
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav">
+                <li className="nav-item">
+                  <Link className="nav-link" to="/">Home</Link>
+                </li>
+                <li className="nav-item">
+                  <Link className="nav-link" to="/profile">Profile</Link>
+                </li>
+              </ul>
             </div>
-            {showLoginModal && <LoginModal isOpen={showLoginModal} onClose={handleModalClose} />}
+          </div>
+          {showLoginModal && <LoginModal isOpen={showLoginModal} onClose={handleModalClose} />}
         </nav>
-    )
+      );      
 }
 
