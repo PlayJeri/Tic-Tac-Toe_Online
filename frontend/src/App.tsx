@@ -4,6 +4,7 @@ import { Complete } from "./containers/Complete"
 import { HomePage } from "./containers/HomePage"
 import { RegisterPage } from './containers/Register'
 import { ProfilePage } from './containers/ProfilePage'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App: React.FC = () => {
   return (
