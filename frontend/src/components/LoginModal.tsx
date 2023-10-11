@@ -1,28 +1,41 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
+import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import "../styles/LoginModal.css";
+import { LoginForm } from "./LoginForm";
 
-interface LoginModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
 
-export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
+export const LoginModal: React.FC = () => {
+    const [showModal, setShowModal] = useState(false);
 
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
-    });
+    const handleModalClose = () => setShowModal(false);
+    const handleModalOpen = () => setShowModal(true);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData({...formData, [name]: value });
-    }
+    useEffect(() => {
+        const checkIfLoggedIn = async () => {
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) return setShowModal(true);
 
-    const handleFormSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        console.log("Login form data: ", formData);
+            const headers = {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': "application/json",
+            };
+
+            const response = await fetch('http://localhost:3000/auth/validate', {
+                 method: 'POST',
+                 headers: headers,
+            })
+
+            if (response.status !== 200) {
+                setShowModal(true);
+            }
+        }
+
+        checkIfLoggedIn();
+    }, [])
+
+    const handleFormSubmit = async (formData: any) => {
         try {
+            console.log('login try');
             const response = await fetch("http://localhost:3000/auth/login", {
                 method: "POST",
                 headers: {
@@ -32,9 +45,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             })
             
             if (response.ok) {
+                console.log('LOGGED IN SUCCESS!');
                 const data = await response.json();
                 localStorage.setItem("access_token", data.token);
-                onClose();
+                setShowModal(false);
             } else {
                 console.error("Authentication failed");
             }
@@ -44,39 +58,35 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
 
     return (
-        <div className={`login-modal ${isOpen ? 'open' : ''}`}>
-            <div className="modal-content">
-                <h2>Login</h2>
-                <form onSubmit={handleFormSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            id="username"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-                    <button type="submit">Login</button>
-                </form>
-                <p>
-                    Don't have an account? <Link to="/register">Register here</Link>
-                </p>
-                <button onClick={onClose}>Close</button>
-            </div>
-        </div>
+        <>
+            <Button variant="border-success" onClick={handleModalOpen}>
+                Login
+            </Button>
+
+            <Modal
+                show={showModal}
+                onHide={handleModalClose}
+                backdrop="static"
+                keyboard={false}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Log in</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+
+                <LoginForm handleFormSubmit={handleFormSubmit}/>
+
+                <div className="text-center">
+                <p>Don't have an account?</p>
+                    <Link to="/register">
+                        <Button variant="outline-success">
+                                Register here
+                        </Button>
+                    </Link>
+                </div>
+                
+                </Modal.Body>
+            </Modal>
+        </>
     )
 }
