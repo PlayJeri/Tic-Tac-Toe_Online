@@ -2,10 +2,16 @@ import { useState, useEffect } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
+import { AlertComponent } from "./Alert";
 
 
-export const LoginModal: React.FC = () => {
+interface LoginModalProps {
+    showCustomAlert: (message: string, variant: string) => void;
+}
+
+export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
     const [showModal, setShowModal] = useState(false);
+    const [showLoginFailedAlert, setShowLoginFailedAlert] = useState(false);
 
     const handleModalClose = () => setShowModal(false);
     const handleModalOpen = () => setShowModal(true);
@@ -45,11 +51,13 @@ export const LoginModal: React.FC = () => {
             })
             
             if (response.ok) {
-                console.log('LOGGED IN SUCCESS!');
                 const data = await response.json();
+                showCustomAlert("Login successful!", "success");
                 localStorage.setItem("access_token", data.token);
                 setShowModal(false);
             } else {
+                setShowLoginFailedAlert(true);
+                console.log('kakka pissa vittu jee');
                 console.error("Authentication failed");
             }
         } catch (error) {
@@ -73,6 +81,8 @@ export const LoginModal: React.FC = () => {
                     <Modal.Title>Log in</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+
+                {showLoginFailedAlert && <AlertComponent variant={"danger"} message={"Invalid credentials"} />}
 
                 <LoginForm handleFormSubmit={handleFormSubmit}/>
 
