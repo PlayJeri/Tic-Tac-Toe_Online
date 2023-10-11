@@ -57,7 +57,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
                 setShowModal(false);
             } else {
                 setShowLoginFailedAlert(true);
-                console.log('kakka pissa vittu jee');
                 console.error("Authentication failed");
             }
         } catch (error) {

@@ -6,11 +6,10 @@ import "../styles/NavBar.css"
 
 
 export const NavBar: React.FC = () => {
-  const [showAlert, setShowAlert] = useState(false);
+  const [, setShowAlert] = useState(false);
   const [alertVariant, setAlertVariant] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
 
-  const hideAlert = () => setShowAlert(false);
   const showCustomAlert = (message: string, variant: string) => {
     setAlertVariant(variant);
     setAlertMessage(message);
