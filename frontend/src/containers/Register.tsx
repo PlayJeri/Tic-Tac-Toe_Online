@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-
+import { Form, Button, Alert } from "react-bootstrap";
 
 export const RegisterPage: React.FC = () => {
-
     const [errorMsg, setErrorMsg] = useState("");
     const [formData, setFormData] = useState({
         username: "",
@@ -17,8 +16,8 @@ export const RegisterPage: React.FC = () => {
         setFormData({
             ...formData,
             [name]: value,
-        })
-    }
+        });
+    };
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -33,15 +32,13 @@ export const RegisterPage: React.FC = () => {
                     password: formData.password,
                     password2: formData.confirmPassword
                 })
-            })
-            
+            });
+
             if (response.status === 201) {
                 console.log("Account created successfully");
                 setErrorMsg("");
                 setPasswordsMatch(true);
-            }
-
-            else {
+            } else {
                 const errorData = await response.json();
                 console.log(errorData.error);
                 setErrorMsg(errorData.error);
@@ -54,46 +51,41 @@ export const RegisterPage: React.FC = () => {
     }
 
     return (
-        <>
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label htmlFor="username">Username:</label>
-                <input
+        <Form onSubmit={handleSubmit}>
+            <Form.Group>
+                <Form.Label>Username:</Form.Label>
+                <Form.Control
                     type="text"
-                    id="username"
                     name="username"
                     value={formData.username}
                     onChange={handleChange}
                     required
                 />
-            </div>
-            <div>
-                <label htmlFor="password">Password:</label>
-                <input
+            </Form.Group>
+            <Form.Group>
+                <Form.Label>Password:</Form.Label>
+                <Form.Control
                     type="password"
-                    id="password"
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
                     required
                 />
-            </div>
-            <div>
-                <label htmlFor="confirmPassword">Retype Password:</label>
-                <input
+            </Form.Group>
+            <Form.Group>
+                <Form.Label>Retype Password:</Form.Label>
+                <Form.Control
                     type="password"
-                    id="confirmPassword"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
                 />
-            </div>
+            </Form.Group>
             {!passwordsMatch && (
-                <p style={{ color: "red" }}>{errorMsg}</p>
+                <Alert variant="danger">{errorMsg}</Alert>
             )}
-            <button type="submit">Register</button>
-        </form>
-        </>
-    )
-}
+            <Button type="submit">Register</Button>
+        </Form>
+    );
+};
