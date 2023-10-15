@@ -68,3 +68,19 @@ export async function addScores(winner: ConnectedUser, loser: ConnectedUser) {
         console.error('Error updating scores:', error);
     }
 }
+
+export async function createPendingFriendship(currentUserId: number, newFriendId: number): Promise<Error | null> {
+    try {
+        const friendship = await prisma.friends.create({
+            data: {
+                followerId: currentUserId,
+                followedId: newFriendId,
+                status: 'pending',
+            },
+        });
+        
+        return null
+    } catch (error: any) {
+        return error
+    }
+}
