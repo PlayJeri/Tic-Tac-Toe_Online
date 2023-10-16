@@ -84,3 +84,32 @@ export async function createPendingFriendship(currentUserId: number, newFriendId
         return error
     }
 }
+
+export async function acceptPendingFriendship(currentUserId: number, requesterId: number): Promise<Error | null> {
+    try {
+        const acceptedFriendship = await prisma.friends.update({
+            data: {
+                status: 'accepted'
+            },
+            where: {
+                followerId_followedId: {
+                    followerId: requesterId,
+                    followedId: currentUserId
+                }
+            }
+        });
+
+        const followBackFriendship = await prisma.friends.create({
+            data: {
+                followerId: currentUserId,
+                followedId: requesterId,
+                status: 'accepted'
+            }
+        });
+
+        return null;
+    } catch (error: any) {
+        console.error("accept friendship error: ", error);
+        return error;
+    }
+}
