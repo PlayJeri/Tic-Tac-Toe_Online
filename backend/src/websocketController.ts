@@ -244,3 +244,17 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
     }
 }
 
+const handleFriendRequestMessage = (userUsername: string, friendUsername: string) => {
+    const user = connectedUsers.find(user => user.username === friendUsername)
+
+    if (!user) return;
+
+    const message = {
+        type: 'FRIEND_REQUEST',
+        message: {
+            message: `${userUsername} want to add you as a friend!`
+        }
+    }
+
+    user.ws.send(JSON.stringify(message));
+}
