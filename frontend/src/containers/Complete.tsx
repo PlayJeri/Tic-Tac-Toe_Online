@@ -5,6 +5,7 @@ import { DecodedAccessToken } from "../utils/types";
 import { NavBar } from "../components/NavBar";
 import { ChatBox } from "../components/ChatBox";
 import '../styles/Complete.css';
+import { Button } from "react-bootstrap";
 
 
 export const Complete: React.FC = () => {
@@ -25,10 +26,11 @@ export const Complete: React.FC = () => {
     const wsServiceRef = useRef<WebSocket | null>(null);
     const accessToken = localStorage.getItem("access_token");
 
+    useEffect(() => {
+        handleConnect();
+    }, [])
+
     const handleConnect = () => {
-        if (connected) {
-            return;
-        }
         if (!accessToken) return;
         const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
         setSearching(true);
@@ -153,50 +155,57 @@ export const Complete: React.FC = () => {
     return (
         <>
         <NavBar />
-        <h1>Welcome to play tic-tac-toe</h1>
-        { !gameStarted ?
-        <div className="lobby">
-            {!gameStarted && (
-                <>
-                <button onClick={handleConnect} disabled={connected}>
-                    { searching
-                        ? <div className="search-container">
-                            <p>Searching...</p>
-                            <div className="spinner"></div>
-                        </div>
-                         
-                        : <p>Find a match</p>
-                    }
-                </button>
-                </>
-            )}
+        { !gameStarted && searching ?
+        <div className="row justify-content-center text-center mt-5">
+            <div className="col-6 pt-5">
+                <Button variant="outline-primary" className="mt-5">
+                <h2>Searching...</h2>
+                <div className="spinner"></div>
+                </Button>
+            </div>
         </div>
         : null
         }
         { gameStarted ? 
-            <div className="game-container">
-                <div className="game">
-                <h2>
-                    {winner ? `${winner}` : null}
-                    {winner && winner !== 'draw' ? " wins! " : ""}
-                    {message ? message : null}
-                    {winner ? <button onClick={handleResetGame}>Play again</button> : null}
-                </h2>
-                <h2>{playAgain ? playAgain : null}</h2>
+            <div className="container">
+                <div className="row mt-4 justify-content-center text-center">
+                    <h1>{roomName.replace("+", " vs ")}</h1>
+                </div>
+                <div className="row my-5 text-center justify-content-center">
+                        <div className="col-6">
+                            <h2>
+                            {winner ? `${winner}` : null}
+                            {winner && winner !== 'draw' ? " wins! " : ""}
+                            </h2>
+                        </div>
+                    </div>
+                <div className="row text-center justify-content-center">
+                    <div className="col-6">
+                        {winner ? <Button className="me-4" variant="primary" onClick={handleResetGame}>Play again</Button> : null}
+                    </div>
+                </div>
+                <div className="row text-center justify-content-center">
+                    <div className="col-6">
+                        <h5 className="mt-2">
+                        {playAgain ? playAgain : null}
+                        </h5>
+                    </div>
+                </div>
+                <div className="row text-center pt-5">
+                    <div className="col-5">
                     {winner
                         ? null
                         :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
                     }
-                    <div className="game-board">
                         <GameBoard squares={gameState} onClick={handleClick} />
                     </div>
-                </div>
-                <ChatBox
+                <ChatBox 
                     wsService={wsServiceRef}
                     username={username}
                     roomName={roomName}
                     messages={messages}
-                />
+                    />
+                </div>
             </div>
         : null}
         </>
