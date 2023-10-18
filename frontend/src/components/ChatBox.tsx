@@ -34,7 +34,7 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsS
     }
 
     return (
-        <div className='chat-box'>
+        <div className='chat-box col-5'>
             <div className='chat-messages'>
                 {messages.map((message, index) => (
                     <div key={index} className={`chat-message ${
