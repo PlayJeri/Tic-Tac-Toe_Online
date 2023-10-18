@@ -1,12 +1,11 @@
 import { WebSocketServer, WebSocket } from "ws";
-import jwt, { verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
 import { ConnectedUser, NewMove } from "./utils/types";
 import { Room } from "./utils/Room";
 import { addScores } from "./utils/prismaHelpers";
-import { json } from "express";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY!;
@@ -242,19 +241,4 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
             user.ws.send(JSON.stringify(message));
         })
     }
-}
-
-const handleFriendRequestMessage = (userUsername: string, friendUsername: string) => {
-    const user = connectedUsers.find(user => user.username === friendUsername)
-
-    if (!user) return;
-
-    const message = {
-        type: 'FRIEND_REQUEST',
-        message: {
-            message: `${userUsername} want to add you as a friend!`
-        }
-    }
-
-    user.ws.send(JSON.stringify(message));
 }
