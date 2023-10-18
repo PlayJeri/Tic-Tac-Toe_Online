@@ -6,7 +6,7 @@ import "../styles/NavBar.css"
 
 
 export const NavBar: React.FC = () => {
-  const [, setShowAlert] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [alertVariant, setAlertVariant] = useState('');
   const [alertMessage, setAlertMessage] = useState('');
 
@@ -35,14 +35,14 @@ export const NavBar: React.FC = () => {
             </ul>
           </div>
         </div>
-        <LoginModal 
-          showCustomAlert={showCustomAlert}
-        />
+          <LoginModal showCustomAlert={showCustomAlert}/>
       </nav>
+      {showAlert ?
       <AlertComponent 
         variant={alertVariant}
         message={alertMessage}
       />
+      : null}
     </>
     );      
 }
