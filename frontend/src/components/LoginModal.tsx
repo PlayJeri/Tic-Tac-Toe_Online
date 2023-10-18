@@ -66,7 +66,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
 
     return (
         <>
-            <Button variant="border-success" onClick={handleModalOpen}>
+            <Button variant="outline-success" onClick={handleModalOpen}>
                 Login
             </Button>
 
