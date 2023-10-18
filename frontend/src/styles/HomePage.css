@@ -3,29 +3,29 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh; /* Make the container full height of the viewport */
+    height: 100vh;
+    position: relative;
 }
 
-.tic-tac-toe-image {
+.ttt-image {
     max-width: 100%;
-    background: none;
-    position: relative; /* Add position relative to the image container */
+    position: absolute;
 }
 
 .play-button {
     position: absolute;
-    top: 46%;
+    top: 42%;
     left: 50%;
     transform: translate(-50%);
-    background: none; /* Transparent background */
-    color: #000; /* Black text color */
-    padding: 20px; /* Increase padding for a larger button */
+    background: none; 
+    color: #000; 
+    padding: 20px; 
     border: none;
     text-decoration: none;
     font-size: 8em;
     font-weight: bolder;
     cursor: pointer;
-    transition: font-size 0.3s ease; /* Add hover box shadow transition */
+    transition: font-size 0.3s ease; 
 }
 
 .play-button:hover {
