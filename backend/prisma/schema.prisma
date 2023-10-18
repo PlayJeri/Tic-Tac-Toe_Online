@@ -17,20 +17,4 @@ model User {
   wins Int
   losses Int
   timePlayedSeconds Int @default(0)
-
-  followed Friends[] @relation("FollowedFriends")
-  followers Friends[] @relation("FollowerFriends")
-}
-
-model Friends {
-  id Int @id @default(autoincrement())
-
-  followerId Int
-  followedId Int
-  status String
-
-  @@unique([followerId, followedId])
-
-  follower User @relation("FollowerFriends", fields: [followedId], references: [id])
-  followed User @relation("FollowedFriends", fields: [followerId], references: [id])
 }
