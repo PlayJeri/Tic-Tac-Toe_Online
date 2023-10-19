@@ -4,6 +4,9 @@ import { Link } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { AlertComponent } from "./Alert";
 
+import { useWebSocketContext } from "../utils/WebSocketContext";
+import jwtDecode from "jwt-decode";
+import { DecodedAccessToken } from "../utils/types";
 
 interface LoginModalProps {
     showCustomAlert: (message: string, variant: string) => void;
@@ -12,13 +15,17 @@ interface LoginModalProps {
 export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
     const [showModal, setShowModal] = useState(false);
     const [showLoginFailedAlert, setShowLoginFailedAlert] = useState(false);
+    const { webSocket, setWebSocket } = useWebSocketContext();
+    const accessToken = localStorage.getItem('access_token');
+
+    const decodedToken: DecodedAccessToken | null = accessToken ? jwtDecode(accessToken) : null;
+
 
     const handleModalClose = () => setShowModal(false);
     const handleModalOpen = () => setShowModal(true);
 
     useEffect(() => {
         const checkIfLoggedIn = async () => {
-            const accessToken = localStorage.getItem('access_token');
             if (!accessToken) return setShowModal(true);
 
             const headers = {
@@ -33,10 +40,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
 
             if (response.status !== 200) {
                 setShowModal(true);
+                return
+            }
+
+            if (webSocket === null) {
+                const wsConn = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
+                setWebSocket(wsConn);
             }
         }
 
         checkIfLoggedIn();
+
+        if (!decodedToken) return;
+        if (!webSocket) return;
+        sendNewUserMessage(webSocket, decodedToken.username);
     }, [])
 
     const handleFormSubmit = async (formData: any) => {
@@ -55,6 +72,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
                 showCustomAlert("Login successful!", "success");
                 localStorage.setItem("access_token", data.token);
                 setShowModal(false);
+
+                const wsConn = new WebSocket(`ws://localhost:3000?token=${data.token}`);
+                setWebSocket(wsConn);
+
             } else {
                 setShowLoginFailedAlert(true);
                 console.error("Authentication failed");
@@ -62,6 +83,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
         } catch (error) {
             console.error("Error occurred during login: ", error);
         }
+    }
+
+    function sendNewUserMessage(ws: WebSocket, username: string) {
+        console.log('send new user message');
+        const message = {
+            type: 'NEW_USER',
+            payload: {
+                username: username
+            }
+        }
+        ws.send(JSON.stringify(message));
     }
 
     return (

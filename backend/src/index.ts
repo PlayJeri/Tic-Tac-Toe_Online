@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { upgrade } from './websocketController';
+import userRouter from './routers/userRouter';
 import authRouter from './routers/authRouter';
 import profileRouter from './routers/profileRouter';
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
+app.use('/user', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
     res.send("Welcome to Tic Tac Toe Multiplayer!");
@@ -23,4 +25,3 @@ const server = app.listen(PORT, () => {
 })
 
 upgrade(server);
-

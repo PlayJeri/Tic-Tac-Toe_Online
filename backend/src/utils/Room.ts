@@ -1,15 +1,15 @@
-import { ConnectedUser } from "./types";
+import { User } from "./types";
 
 export class Room {
     name: string;
-    users: ConnectedUser[];
+    users: User[];
     gameState: (string | null)[];
     lastIndex: number | null;
     nextChar: string;
     currentTurn: string;
     playAgain: string[];
 
-    constructor(users: ConnectedUser[]) {
+    constructor(users: User[]) {
         this.users = users;
         this.gameState = Array(9).fill(null);
         this.currentTurn = users[Math.floor(Math.random() * 2)].username || '';
@@ -31,7 +31,7 @@ export class Room {
         return !this.gameState.includes(null);
     }
 
-    calculateWinner(connectedUser: ConnectedUser): ConnectedUser | null {
+    calculateWinner(connectedUser: User): User | null {
         const username = connectedUser.username;
         const winningLines: number[][] = [
             [0, 1, 2],

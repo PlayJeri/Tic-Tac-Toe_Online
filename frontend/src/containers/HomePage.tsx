@@ -9,8 +9,8 @@ export const HomePage: React.FC = () => {
         <div className="home-page">
             <NavBar />
             <div className="ttt-board-container">
-            <img src={TicTacToeImage} alt="Tic Tac Toe Board" className="ttt-image" />
-            <Link to="/game" className="play-button">PLAY</Link>
+                <img src={TicTacToeImage} alt="Tic Tac Toe Board" className="ttt-image" />
+                <Link to="/game" className="play-button">PLAY</Link>
             </div>
         </div>
     )

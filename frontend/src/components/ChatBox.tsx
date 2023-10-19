@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { ChatProps } from '../utils/types';
+import { useWebSocketContext } from "../utils/WebSocketContext";
 import "../styles/ChatBox.css";
 
-export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsService }) => {
-
+export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName }) => {
+    const { webSocket } = useWebSocketContext();
     const [newMessage, setNewMessage] = useState('');
 
     const handleMessageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -12,7 +13,7 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsS
 
     const handleSendMessage = () => {
         if (newMessage.trim() !== '') {
-            wsService.current?.send(
+            webSocket?.send(
                 JSON.stringify({
                     type: "CHAT_MESSAGE",
                     payload: {
@@ -34,7 +35,7 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName, wsS
     }
 
     return (
-        <div className='chat-box col-5'>
+        <div className='chat-box col-5' style={{ height: '400px', overflowY: 'auto' }}>
             <div className='chat-messages'>
                 {messages.map((message, index) => (
                     <div key={index} className={`chat-message ${

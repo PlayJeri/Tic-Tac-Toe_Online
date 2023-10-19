@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 
-export interface ConnectedUser {
+export interface User {
     ws:        WebSocket;
     username:  string;
 }
@@ -25,4 +25,11 @@ export interface RegisterRequestBody {
 
 export interface userData {
     username: string;
+}
+
+export interface DecodedAccessToken {
+    userId: number;
+    username: string;
+    iat: number;
+    exp: number;
 }

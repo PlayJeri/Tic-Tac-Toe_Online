@@ -1,18 +1,20 @@
 import { WebSocketServer, WebSocket } from "ws";
-import jwt from 'jsonwebtoken';
+import jwt, { verify } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
-import { ConnectedUser, NewMove } from "./utils/types";
+import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
 import { addScores } from "./utils/prismaHelpers";
+import { json } from "express";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY!;
 
 const wss = new WebSocketServer({ noServer: true });
 
-const connectedUsers: ConnectedUser[] = [];
+const connectedUsers: User[] = [];
+const queuedUsers: User[] = [];
 const rooms: Room[] = [];
 
 wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage, client: any) {
@@ -31,9 +33,14 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
     console.log("Number of rooms is ", rooms.length);
     try {
         const { type } = JSON.parse(data);
+        console.log("type:", type);
         switch(type) {
             case MessageType.NEW_USER:
+                console.log('new user');
                 handleNewUserMessage(ws, data);
+                break;
+            case MessageType.QUEUE_USER:
+                handleQueueUserMessage(ws, data);
                 break;
             case MessageType.NEW_MOVE:
                 handleNewMoveMessage(ws, data);
@@ -43,6 +50,9 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
                 break;
             case MessageType.CHAT_MESSAGE:
                 handleChatMessage(ws, data);
+                break;
+            case MessageType.FRIEND_REQUEST:
+                handleFriendRequestMessage(ws, data);
                 break;
             default:
                 console.log("Unknown message type: ", type);
@@ -55,7 +65,6 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
 
 export function upgrade(server: HttpServer) {
     server.on('upgrade', (request, socket, head) => {
-        console.log('upgrade');
         socket.on('error', onSocketError);
     
         const token = request.url?.split('?')[1]?.split('=')[1];
@@ -69,12 +78,15 @@ export function upgrade(server: HttpServer) {
     
         try {
             const client = jwt.verify(token, secretKey);
+            const decodedToken = jwt.decode(token) as DecodedAccessToken
         
             socket.removeListener('error', onSocketError);
         
             wss.handleUpgrade(request, socket, head, (ws) => {
                 wss.emit('connection', ws, request, client);
             })
+            console.log("User web sokcet connected", decodedToken.username);
+
         } catch (error) {
             if (error instanceof jwt.TokenExpiredError) {
                 console.error('Token has expired:', error.message)
@@ -93,11 +105,17 @@ function onSocketError(err: Error): void {
 const handleClose = (ws: WebSocket) => {
     console.log("WebSocket connection closed");
 
-    const userIndex = connectedUsers.findIndex(user => user.ws === ws);
-    if (userIndex !== -1) {
-        const username = connectedUsers[userIndex].username;
+    const userIndexConnected = connectedUsers.findIndex(user => user.ws === ws);
+    if (userIndexConnected !== -1) {
+        console.log(`User ${connectedUsers[userIndexConnected].username} disconnected`)
+        connectedUsers.splice(userIndexConnected, 1);
+    }
+
+    const userIndexQueued = queuedUsers.findIndex(user => user.ws === ws);
+    if (userIndexQueued !== -1) {
+        const username = queuedUsers[userIndexQueued].username;
         console.log(`User disconnected" ${username}`)
-        connectedUsers.splice(userIndex, 1);
+        queuedUsers.splice(userIndexQueued, 1);
     }
     const roomIndex = rooms.findIndex(room => room.users[0].ws === ws || room.users[1].ws === ws);
     const roomUsers = rooms[roomIndex]?.users
@@ -126,15 +144,28 @@ const handleClose = (ws: WebSocket) => {
 
 const handleNewUserMessage = (ws: WebSocket, data: string) => {
     const { payload: { username } } = JSON.parse(data);
+    if (connectedUsers.includes({ ws, username})) return;
+    connectedUsers.push({ ws, username });
     console.log(username, "joined");
 
+    const connectedMessage = {
+        type: 'CONNECTED',
+        message: {
+            message: 'Connected successfully!!'
+        }
+    }
+    ws.send(JSON.stringify(connectedMessage));
+}
+
+const handleQueueUserMessage = (ws: WebSocket, data: string) => {
+    const { payload: { username } } = JSON.parse(data);
     const connectionStartTime = Date.now();
     ws.connectionStartTime = connectionStartTime;
+    queuedUsers.push({ ws, username: username });
+    console.log('queuedUsers len = ', queuedUsers.length);
 
-    connectedUsers.push({ ws, username: username });
-
-    if (connectedUsers.length >= 2) {
-        const roomUsers = connectedUsers.splice(0, 2);
+    if (queuedUsers.length >= 2) {
+        const roomUsers = queuedUsers.splice(0, 2);
         const room = new Room(roomUsers);
         rooms.push(room);
         console.log('New room created');
@@ -241,4 +272,23 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
             user.ws.send(JSON.stringify(message));
         })
     }
+}
+
+export const handleFriendRequestMessage = (ws: WebSocket, data: string) => {
+
+    const { username, friend } = JSON.parse(data).payload;
+
+    const user = connectedUsers.find(user => user.username === friend)
+
+    if (!user) return;
+
+    const message = {
+        type: 'FRIEND_REQUEST',
+        message: {
+            message: `${username} want to add you as a friend!`,
+            user: username
+        }
+    }
+    console.log('message sent to ', friend);
+    user.ws.send(JSON.stringify(message));
 }

@@ -7,6 +7,7 @@ import { ChatBox } from "../components/ChatBox";
 import '../styles/Complete.css';
 import { Button } from "react-bootstrap";
 
+import { useWebSocketContext } from "../utils/WebSocketContext";
 
 export const Complete: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -17,13 +18,11 @@ export const Complete: React.FC = () => {
     const [searching, setSearching] = useState(false);
     const [playAgain, setPlayAgain] = useState("");
     const [message, setMessage] = useState("");
-
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
-
     const [messages, setMessages] = useState<{ text: string; username: string }[]>([]);
-
-    const wsServiceRef = useRef<WebSocket | null>(null);
+    
+    const { webSocket } = useWebSocketContext();
     const accessToken = localStorage.getItem("access_token");
 
     useEffect(() => {
@@ -34,23 +33,19 @@ export const Complete: React.FC = () => {
         if (!accessToken) return;
         const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
         setSearching(true);
-        
-        // wsServiceRef.current = new WebSocket('ws://80.220.88.45:80');
-        wsServiceRef.current = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
+        const ws = webSocket;
+        if (!ws) return;
 
-        wsServiceRef.current.onopen = () => {
-            console.log("Connected to WebSocket server");
-            console.log(`Username is ${decodedToken.username}`)
-            wsServiceRef.current?.send(JSON.stringify({
-                type: 'NEW_USER',
+            console.log(decodedToken.username, "connected to WebSocket server");
+            ws.send(JSON.stringify({
+                type: 'QUEUE_USER',
                 payload: {
                     username: decodedToken.username,
                     accessToken: accessToken,
                 } }));
-            }
         setUsername(decodedToken.username);
 
-        wsServiceRef.current.onmessage = (event) => {
+        ws.onmessage = (event) => {
             const { type, message } = JSON.parse(event.data);
             console.log(type, "|", message)
             if (type == 'START_GAME') {
@@ -100,37 +95,19 @@ export const Complete: React.FC = () => {
             }
         }
     
-        wsServiceRef.current.onclose = () => {
+        ws.onclose = () => {
             console.log("Disconnected from WebSocket server");
             setGameStarted(false)
             setConnected(false);
         }
         
     }
-
-    useEffect(() => {
-
-        const cleanup = () => {
-            const ws = wsServiceRef.current;
-            console.log(ws, ws?.readyState);
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.close();
-            }
-        }
-
-        window.addEventListener('unload', cleanup);
-
-        return () => {
-            window.removeEventListener('unload', cleanup);
-            cleanup();
-        }
-    }, [])
     
     const handleClick = (index: number): void => {
         if (!yourTurn) {
             return;
         }
-        wsServiceRef.current?.send(JSON.stringify({ 
+        webSocket?.send(JSON.stringify({ 
             type: "NEW_MOVE",
             payload: {
                 roomName: roomName,
@@ -143,7 +120,7 @@ export const Complete: React.FC = () => {
     }
 
     const handleResetGame = (): void => {
-        wsServiceRef.current?.send(JSON.stringify({
+        webSocket?.send(JSON.stringify({
             type: "RESET_GAME",
             payload: {
                 username: username,
@@ -199,8 +176,7 @@ export const Complete: React.FC = () => {
                     }
                         <GameBoard squares={gameState} onClick={handleClick} />
                     </div>
-                <ChatBox 
-                    wsService={wsServiceRef}
+                <ChatBox
                     username={username}
                     roomName={roomName}
                     messages={messages}

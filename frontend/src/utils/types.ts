@@ -21,7 +21,6 @@ export interface ProfileInfo {
 }
 
 export interface ChatProps {
-    wsService: React.MutableRefObject<WebSocket | null>;
     username: string;
     roomName: string;
     messages: { text: string; username: string; }[];

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { ConnectedUser } from "./types";
+import { User } from "./types";
 
 const prisma = new PrismaClient();
 
@@ -34,7 +34,7 @@ export async function getUser(username: string) {
     }
 }
 
-export async function addScores(winner: ConnectedUser, loser: ConnectedUser) {
+export async function addScores(winner: User, loser: User) {
     try {
         const winnerTimePlayed = (Date.now() - winner.ws.connectionStartTime!) / 1000;
         const loserTimePlayed = (Date.now() - loser.ws.connectionStartTime!) / 1000;
@@ -69,3 +69,47 @@ export async function addScores(winner: ConnectedUser, loser: ConnectedUser) {
     }
 }
 
+export async function createPendingFriendship(currentUserId: number, newFriendId: number): Promise<Error | null> {
+    try {
+        const friendship = await prisma.friends.create({
+            data: {
+                followerId: currentUserId,
+                followedId: newFriendId,
+                status: 'pending',
+            },
+        });
+        
+        return null
+    } catch (error: any) {
+        return error
+    }
+}
+
+export async function acceptPendingFriendship(currentUserId: number, requesterId: number): Promise<Error | null> {
+    try {
+        const acceptedFriendship = await prisma.friends.update({
+            data: {
+                status: 'accepted'
+            },
+            where: {
+                followerId_followedId: {
+                    followerId: requesterId,
+                    followedId: currentUserId
+                }
+            }
+        });
+
+        const followBackFriendship = await prisma.friends.create({
+            data: {
+                followerId: currentUserId,
+                followedId: requesterId,
+                status: 'accepted'
+            }
+        });
+
+        return null;
+    } catch (error: any) {
+        console.error("accept friendship error: ", error);
+        return error;
+    }
+}
