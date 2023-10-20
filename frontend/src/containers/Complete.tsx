@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import GameBoard from "../components/GameBoard";
 import jwtDecode from "jwt-decode";
 import { DecodedAccessToken } from "../utils/types";
@@ -11,23 +12,34 @@ import { useWebSocketContext } from "../utils/WebSocketContext";
 
 export const Complete: React.FC = () => {
     const [username, setUsername] = useState('');
-    const [connected, setConnected] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
     const [yourTurn, setYourTurn] = useState(false);
     const [roomName, setRoomName] = useState("");
     const [searching, setSearching] = useState(false);
     const [playAgain, setPlayAgain] = useState("");
-    const [message, setMessage] = useState("");
     const [gameState, setGameState] = useState<string[][]>([])
     const [winner, setWinner] = useState<string | null>(null);
     const [messages, setMessages] = useState<{ text: string; username: string }[]>([]);
     
     const { webSocket } = useWebSocketContext();
     const accessToken = localStorage.getItem("access_token");
+    const location = useLocation();
 
     useEffect(() => {
         handleConnect();
-    }, [])
+
+        const handleDisconnect = () => {
+            webSocket?.send(JSON.stringify({
+                type: "OPPONENT_DISCONNECTED"
+            }))
+        }
+
+        return () => {
+            console.log('remove listener')
+            handleDisconnect();
+        };
+
+    }, [, location])
 
     const handleConnect = () => {
         if (!accessToken) return;
@@ -36,13 +48,13 @@ export const Complete: React.FC = () => {
         const ws = webSocket;
         if (!ws) return;
 
-            console.log(decodedToken.username, "connected to WebSocket server");
-            ws.send(JSON.stringify({
-                type: 'QUEUE_USER',
-                payload: {
-                    username: decodedToken.username,
-                    accessToken: accessToken,
-                } }));
+        console.log(decodedToken.username, "connected to WebSocket server");
+        ws.send(JSON.stringify({
+            type: 'QUEUE_USER',
+            payload: {
+                username: decodedToken.username,
+                accessToken: accessToken,
+            } }));
         setUsername(decodedToken.username);
 
         ws.onmessage = (event) => {
@@ -89,16 +101,14 @@ export const Complete: React.FC = () => {
                 setPlayAgain(message.text);
             }
             if (type === 'OPPONENT_DISCONNECTED') {
-                setWinner(username);
+                setWinner(`Opponent disconnected! ${username}`);
                 setYourTurn(false);
-                setMessage("Opponent disconnected.")
             }
         }
     
         ws.onclose = () => {
             console.log("Disconnected from WebSocket server");
             setGameStarted(false)
-            setConnected(false);
         }
         
     }
