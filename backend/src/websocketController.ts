@@ -6,7 +6,6 @@ import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
 import { addScores } from "./utils/prismaHelpers";
-import { json } from "express";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY!;
@@ -30,13 +29,10 @@ wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage
 
 const handleIncomingMessage = (data: string, ws: WebSocket) => {
     console.log("data", data.toString());
-    console.log("Number of rooms is ", rooms.length);
     try {
         const { type } = JSON.parse(data);
-        console.log("type:", type);
         switch(type) {
             case MessageType.NEW_USER:
-                console.log('new user');
                 handleNewUserMessage(ws, data);
                 break;
             case MessageType.QUEUE_USER:
@@ -53,6 +49,9 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
                 break;
             case MessageType.FRIEND_REQUEST:
                 handleFriendRequestMessage(ws, data);
+                break;
+            case MessageType.OPPONENT_DISCONNECTED:
+                handleDisconnectionFromGame(ws);
                 break;
             default:
                 console.log("Unknown message type: ", type);
@@ -85,7 +84,7 @@ export function upgrade(server: HttpServer) {
             wss.handleUpgrade(request, socket, head, (ws) => {
                 wss.emit('connection', ws, request, client);
             })
-            console.log("User web sokcet connected", decodedToken.username);
+            console.log(decodedToken.username, "connected with ws");
 
         } catch (error) {
             if (error instanceof jwt.TokenExpiredError) {
@@ -117,34 +116,14 @@ const handleClose = (ws: WebSocket) => {
         console.log(`User disconnected" ${username}`)
         queuedUsers.splice(userIndexQueued, 1);
     }
-    const roomIndex = rooms.findIndex(room => room.users[0].ws === ws || room.users[1].ws === ws);
-    const roomUsers = rooms[roomIndex]?.users
-    if (roomIndex !== -1) {
-        console.log("number of rooms = ", rooms.length)
-
-        const disconnectedUser = roomUsers.find(user => user.ws === ws);
-        const otherUser = roomUsers.find(user => user.ws !== ws);
-
-        const opponentDisconnectedMessage = {
-            type: 'OPPONENT_DISCONNECTED'
-        }
-
-        otherUser?.ws.send(JSON.stringify(opponentDisconnectedMessage));
-
-        rooms.splice(roomIndex, 1);
-
-        console.log("number of rooms = ", rooms.length);
-        console.log('room closed');
-
-        if (otherUser && disconnectedUser) {
-            addScores(otherUser, disconnectedUser);
-        }
-    }
+    handleDisconnectionFromGame(ws);
 }
 
 const handleNewUserMessage = (ws: WebSocket, data: string) => {
-    const { payload: { username } } = JSON.parse(data);
-    if (connectedUsers.includes({ ws, username})) return;
+    const { username } = JSON.parse(data).payload;
+    const userAlreadyConnected = connectedUsers.some(user => user.ws === ws && user.username === username);
+    if (userAlreadyConnected) return;
+    console.log(`USERNAME IS ${username}`)
     connectedUsers.push({ ws, username });
     console.log(username, "joined");
 
@@ -158,7 +137,11 @@ const handleNewUserMessage = (ws: WebSocket, data: string) => {
 }
 
 const handleQueueUserMessage = (ws: WebSocket, data: string) => {
-    const { payload: { username } } = JSON.parse(data);
+    const { username } = JSON.parse(data).payload;
+
+    const userAlreadyQueued = queuedUsers.some(user => user.ws === ws || user.username === username);
+    if (userAlreadyQueued) return;
+
     const connectionStartTime = Date.now();
     ws.connectionStartTime = connectionStartTime;
     queuedUsers.push({ ws, username: username });
@@ -292,3 +275,34 @@ export const handleFriendRequestMessage = (ws: WebSocket, data: string) => {
     console.log('message sent to ', friend);
     user.ws.send(JSON.stringify(message));
 }
+
+
+const handleDisconnectionFromGame = (ws: WebSocket) => {
+
+    const userIndex = queuedUsers.findIndex(user => user.ws === ws);
+    if (userIndex !== -1) { queuedUsers.splice(userIndex, 1) };
+
+    const roomIndex = rooms.findIndex(room => room.users[0].ws === ws || room.users[1].ws === ws);
+    const roomUsers = rooms[roomIndex]?.users
+    if (roomIndex !== -1) {
+        console.log("number of rooms = ", rooms.length)
+
+        const disconnectedUser = roomUsers.find(user => user.ws === ws);
+        const otherUser = roomUsers.find(user => user.ws !== ws);
+
+        const opponentDisconnectedMessage = {
+            type: 'OPPONENT_DISCONNECTED'
+        }
+
+        otherUser?.ws.send(JSON.stringify(opponentDisconnectedMessage));
+
+        rooms.splice(roomIndex, 1);
+
+        console.log("number of rooms = ", rooms.length);
+        console.log('room closed');
+
+        if (otherUser && disconnectedUser) {
+            addScores(otherUser, disconnectedUser);
+        }
+    }
+};
