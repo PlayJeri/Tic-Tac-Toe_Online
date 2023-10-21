@@ -1,5 +1,8 @@
 import { User } from "./types";
 
+/**
+ * Room for a game of Tic-Tac-Toe.
+ */
 export class Room {
     name: string;
     users: User[];
@@ -9,6 +12,10 @@ export class Room {
     currentTurn: string;
     playAgain: string[];
 
+    /**
+     * Creates a new room with provided users and starts the game with random user starting
+     * @param users - The two users playing in this room.
+     */
     constructor(users: User[]) {
         this.users = users;
         this.gameState = Array(9).fill(null);
@@ -19,6 +26,10 @@ export class Room {
         this.playAgain = [];
     }
 
+    /**
+     * Set the game state for specified index.
+     * @param index - One of the nine squares of the game board.
+     */
     setGameState(index: string) {
         this.gameState[parseInt(index)] = this.nextChar
         this.nextChar = this.nextChar === "X" ? "O" : "X";
@@ -27,10 +38,19 @@ export class Room {
         console.log(this.gameState);
     }
 
+    /**
+     * Checks if the game has ended in a draw.
+     * @returns {boolean} - True if the game is a draw, false otherwise.
+     */
     checkDraw(): boolean {
         return !this.gameState.includes(null);
     }
 
+    /**
+     * Checks if the current game state has a winner.
+     * @param connectedUser - User with current turn
+     * @returns {User | null} - The winning user or null if there is no winner yet.
+     */
     calculateWinner(connectedUser: User): User | null {
         const username = connectedUser.username;
         const winningLines: number[][] = [
@@ -52,6 +72,11 @@ export class Room {
         return null;
     }
 
+    /**
+     * Resets the game for a new round.
+     * @param username - The username of the user requesting a new round.
+     * @returns {boolean} - True if the game resets, false otherwise
+     */
     resetGame(username: string): boolean {
         if (this.playAgain.includes(username)) return false;
         this.playAgain.push(username);
