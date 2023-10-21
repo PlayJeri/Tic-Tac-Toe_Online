@@ -24,9 +24,15 @@ export const validateUsername = async (username: string): Promise<true | string>
     // Regular expression to check if the username contains only letters, numbers, and underscores.
     const isValidChars = /^[a-zA-Z0-9_]+$/.test(username);
 
+    // Return error message if invalid characters were used.
+    if (!isValidChars) return "Username can only contain letters and numbers";
+
     // Checks username length is between 3 and 20 characters.
     const isValidLength = username.length >= 2 && username.length <= 20;
 
-    // Return 'true' if the username is valid or an error message if it's invalid.
-    return (isValidChars && isValidLength) || "Username can only contain letters and numbers";
+    // Return error message if username is not valid in length.
+    if (!isValidLength) return "Username must be between 3 and 20 characters"
+
+    // All validations passed return true
+    return true;
 }
