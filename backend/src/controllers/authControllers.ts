@@ -78,7 +78,7 @@ export const register = async (req: Request, res: Response) => {
         // Validates the username with helper function. Returns 400 if invalid.
         const validUsername = await validateUsername(username);
         if (validUsername !== true) {
-            return res.status(400).json({ error: "invalid username" });
+            return res.status(400).json({ error: validUsername });
         }
 
         // Hash the user's password before storing it in the database.
