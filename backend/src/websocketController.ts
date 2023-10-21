@@ -5,7 +5,8 @@ import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
-import { addScores } from "./utils/prismaHelpers";
+import { acceptPendingFriendship, addScores, createPendingFriendship, getUser } from "./utils/prismaHelpers";
+import { acceptFriendshipRequest } from "./controllers/userControllers";
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY!;
@@ -49,6 +50,9 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
                 break;
             case MessageType.FRIEND_REQUEST:
                 handleFriendRequestMessage(ws, data);
+                break;
+            case MessageType.REQUEST_ACCEPTED:
+                handleAcceptFriendRequest(ws, data);
                 break;
             case MessageType.OPPONENT_DISCONNECTED:
                 handleDisconnectionFromGame(ws);
@@ -257,13 +261,11 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
     }
 }
 
-export const handleFriendRequestMessage = (ws: WebSocket, data: string) => {
+export const handleFriendRequestMessage = async (ws: WebSocket, data: string) => {
 
-    const { username, friend } = JSON.parse(data).payload;
-
-    const user = connectedUsers.find(user => user.username === friend)
-
-    if (!user) return;
+    const { roomName, username } = JSON.parse(data).payload;
+    const room = rooms.find(room => room.name === roomName)
+    if (!room) return;
 
     const message = {
         type: 'FRIEND_REQUEST',
@@ -272,8 +274,17 @@ export const handleFriendRequestMessage = (ws: WebSocket, data: string) => {
             user: username
         }
     }
-    console.log('message sent to ', friend);
-    user.ws.send(JSON.stringify(message));
+    const friend = room.users.find(user => user.username !== username);
+    if (!friend) return;
+    console.log('message sent to ', friend.username);
+    friend.ws.send(JSON.stringify(message));
+
+    const user = await getUser(username);
+    const friendUser = await getUser(friend.username);
+
+    if (!user || !friendUser) return;
+
+    createPendingFriendship(user.id, friendUser.id);
 }
 
 
@@ -306,3 +317,14 @@ const handleDisconnectionFromGame = (ws: WebSocket) => {
         }
     }
 };
+
+const handleAcceptFriendRequest = async (ws: WebSocket, data: string) => {
+    const { username, friendUsername } = JSON.parse(data).payload;
+    if (!username || !friendUsername) return;
+
+    const user = await getUser(username);
+    const friend = await getUser(friendUsername);
+    if (!user || !friend) return;
+
+    acceptPendingFriendship(user.id, friend.id);
+}
