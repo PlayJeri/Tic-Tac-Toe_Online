@@ -6,8 +6,7 @@ import { DecodedAccessToken } from "../utils/types";
 import { NavBar } from "../components/NavBar";
 import { ChatBox } from "../components/ChatBox";
 import '../styles/Complete.css';
-import { Button } from "react-bootstrap";
-
+import { Container, Button, Col, Row, Toast } from "react-bootstrap";
 import { useWebSocketContext } from "../utils/WebSocketContext";
 
 export const Complete: React.FC = () => {
@@ -18,12 +17,16 @@ export const Complete: React.FC = () => {
     const [searching, setSearching] = useState(false);
     const [playAgain, setPlayAgain] = useState("");
     const [gameState, setGameState] = useState<string[][]>([])
+    const [toast, setToast] = useState("");
+    const [showToast, setShowToast] = useState(false);
     const [winner, setWinner] = useState<string | null>(null);
     const [messages, setMessages] = useState<{ text: string; username: string }[]>([]);
     
     const { webSocket } = useWebSocketContext();
     const accessToken = localStorage.getItem("access_token");
     const location = useLocation();
+
+    const toggleShowToast = () => setShowToast(!showToast);
 
     useEffect(() => {
         handleConnect();
@@ -104,6 +107,9 @@ export const Complete: React.FC = () => {
                 setWinner(`Opponent disconnected! ${username}`);
                 setYourTurn(false);
             }
+            if (type === 'FRIEND_REQUEST') {
+                showFriendReqToast(message.message);
+            }
         }
     
         ws.onclose = () => {
@@ -111,6 +117,12 @@ export const Complete: React.FC = () => {
             setGameStarted(false)
         }
         
+    }
+
+    const showFriendReqToast = (message: string) => {
+        console.log("message is", message);
+        setToast(message);
+        toggleShowToast();
     }
     
     const handleClick = (index: number): void => {
@@ -139,60 +151,97 @@ export const Complete: React.FC = () => {
         }))
     }
 
+    const addFriend = () => {
+        webSocket?.send(JSON.stringify({
+            type: "FRIEND_REQUEST",
+            payload: {
+                username: username,
+                roomName: roomName
+            }
+        }))
+    }
+
+    const acceptFriend = () => {
+        const friendUsername = roomName.split("+").find(name => name !== username);
+        webSocket?.send(JSON.stringify({
+            type: "REQUEST_ACCEPTED",
+            payload: {
+                username: username,
+                friendUsername: friendUsername
+            }
+        }))
+    }
+
     return (
         <>
         <NavBar />
+        <Toast show={showToast} onClose={toggleShowToast} >
+            <Toast.Header>
+                <strong className="me-auto">Friend request!</strong>
+            </Toast.Header>
+            <Toast.Body>
+                {toast}
+                <Button onClick={acceptFriend}>Accept</Button>
+            </Toast.Body>
+        </Toast>
         { !gameStarted && searching ?
-        <div className="row justify-content-center text-center mt-5">
-            <div className="col-6 pt-5">
+        <Row className="justify-content-center text-center mt-5">
+            <Col className="col-6 pt-5">
                 <Button variant="outline-primary" className="mt-5">
-                <h2>Searching...</h2>
-                <div className="spinner"></div>
+                    <h2>Searching...</h2>
+                    <div className="spinner"></div>
                 </Button>
-            </div>
-        </div>
+            </Col>
+        </Row>
         : null
         }
         { gameStarted ? 
-            <div className="container">
-                <div className="row mt-4 justify-content-center text-center">
+            <Container>
+                <Row className="mt-4 justify-content-center text-center">
                     <h1>{roomName.replace("+", " vs ")}</h1>
-                </div>
-                <div className="row my-5 text-center justify-content-center">
-                        <div className="col-6">
-                            <h2>
+                </Row>
+                <Row className="my-5 text-center justify-content-center">
+                    <Col xs={6}>
+                        <h2>
                             {winner ? `${winner}` : null}
                             {winner && winner !== 'draw' ? " wins! " : ""}
-                            </h2>
-                        </div>
-                    </div>
-                <div className="row text-center justify-content-center">
-                    <div className="col-6">
+                        </h2>
+                    </Col>
+                    </Row>
+                <Row className="text-center justify-content-center">
+                    <Col xs={6} >
                         {winner ? <Button className="me-4" variant="primary" onClick={handleResetGame}>Play again</Button> : null}
-                    </div>
-                </div>
+                    </Col>
+                </Row>
                 <div className="row text-center justify-content-center">
-                    <div className="col-6">
+                    <Col xs={4}>
                         <h5 className="mt-2">
                         {playAgain ? playAgain : null}
                         </h5>
-                    </div>
+                    </Col>
                 </div>
                 <div className="row text-center pt-5">
-                    <div className="col-5">
+                    <Col>
                     {winner
                         ? null
                         :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
                     }
                         <GameBoard squares={gameState} onClick={handleClick} />
-                    </div>
+                    </Col>
                 <ChatBox
                     username={username}
                     roomName={roomName}
                     messages={messages}
                     />
                 </div>
-            </div>
+                <Row>
+                    <Col className="text-center py-5">
+                        <Button onClick={addFriend}>
+                            Add {roomName.split("+").find(name => name !== username)} as friend
+                        </Button>
+                    </Col>
+                </Row>
+            </Container>
         : null}
         </>
     )
