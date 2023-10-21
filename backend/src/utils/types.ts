@@ -12,17 +12,6 @@ export interface NewMove {
     username:  string;
 }
 
-export interface LoginRequestBody {
-    username: string;
-    password: string;
-}
-
-export interface RegisterRequestBody {
-    username:  string;
-    password:  string;
-    password2: string;
-}
-
 export interface userData {
     username: string;
 }
