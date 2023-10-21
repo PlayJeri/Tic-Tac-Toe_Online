@@ -2,7 +2,6 @@ import { Request, Response } from "express"
 import { getUser, updateUserPassword } from "../utils/prismaHelpers";
 import { userData } from "../utils/types";
 import bcrypt from 'bcrypt';
-import jwt from "jsonwebtoken";
 
 
 export const getProfile = async (req: Request, res: Response) => {
