@@ -19,7 +19,7 @@ model User {
   timePlayedSeconds Int @default(0)
 
   followed Friends[] @relation("FollowedFriends")
-  followers Friends[] @relation("FollowerFriends")
+  follower Friends[] @relation("FollowerFriends")
 }
 
 model Friends {
