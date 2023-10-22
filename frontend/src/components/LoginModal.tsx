@@ -4,9 +4,8 @@ import { Link } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { AlertComponent } from "./Alert";
 
-import { useWebSocketContext } from "../utils/WebSocketContext";
-import jwtDecode from "jwt-decode";
-import { DecodedAccessToken } from "../utils/types";
+import { useWebSocketContext } from "../contextProviders/WebSocketContext";
+import { useAuthContext } from "../contextProviders/AuthenticationContextProvider";
 
 interface LoginModalProps {
     showCustomAlert: (message: string, variant: string) => void;
@@ -15,85 +14,39 @@ interface LoginModalProps {
 export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
     const [showModal, setShowModal] = useState(false);
     const [showLoginFailedAlert, setShowLoginFailedAlert] = useState(false);
-    const { webSocket, setWebSocket } = useWebSocketContext();
-    const accessToken = localStorage.getItem('access_token');
-
-    const decodedToken: DecodedAccessToken | null = accessToken ? jwtDecode(accessToken) : null;
-
+    const wsContext = useWebSocketContext();
+    const authContext = useAuthContext();
 
     const handleModalClose = () => setShowModal(false);
     const handleModalOpen = () => setShowModal(true);
 
     useEffect(() => {
-        const checkIfLoggedIn = async () => {
-            if (!accessToken) return setShowModal(true);
-
-            const headers = {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': "application/json",
-            };
-
-            const response = await fetch('http://localhost:3000/auth/validate', {
-                 method: 'POST',
-                 headers: headers,
-            })
-
-            if (response.status !== 200) {
-                setShowModal(true);
-                return
-            }
-
-            if (webSocket === null) {
-                const wsConn = new WebSocket(`ws://localhost:3000?token=${accessToken}`);
-                setWebSocket(wsConn);
-            }
+        if (authContext?.user) {
+            setShowModal(false);
         }
-
-        checkIfLoggedIn();
-
-        if (!decodedToken) return;
-        if (!webSocket) return;
-        sendNewUserMessage(webSocket, decodedToken.username);
     }, [])
 
-    const handleFormSubmit = async (formData: any) => {
+
+    const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         try {
-            console.log('login try');
-            const response = await fetch("http://localhost:3000/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
-            })
-            
-            if (response.ok) {
-                const data = await response.json();
-                showCustomAlert("Login successful!", "success");
-                localStorage.setItem("access_token", data.token);
-                setShowModal(false);
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const username = formData.get("username") as string;
+            const password = formData.get("password") as string;
+            console.log(username, password);
+            await authContext?.login(username, password); 
 
-                const wsConn = new WebSocket(`ws://localhost:3000?token=${data.token}`);
-                setWebSocket(wsConn);
+            console.log('testi kakka vittu perse');
+            showCustomAlert("Login successful!", "success");
+            setShowModal(false);
 
-            } else {
-                setShowLoginFailedAlert(true);
-                console.error("Authentication failed");
-            }
+            const wsConn = new WebSocket(`ws://localhost:3000`);
+            wsContext.setWebSocket(wsConn);
+            wsContext.sendNewUserMessage(username);
         } catch (error) {
             console.error("Error occurred during login: ", error);
+            setShowLoginFailedAlert(true);
         }
-    }
-
-    function sendNewUserMessage(ws: WebSocket, username: string) {
-        console.log('send new user message');
-        const message = {
-            type: 'NEW_USER',
-            payload: {
-                username: username
-            }
-        }
-        ws.send(JSON.stringify(message));
     }
 
     return (
