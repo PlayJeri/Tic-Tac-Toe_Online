@@ -1,13 +1,13 @@
 import { Request, Response } from "express"
 import { getUser, updateUserPassword } from "../utils/prismaHelpers";
-import { userData } from "../utils/types";
+import { DecodedAccessToken, tokenPayload } from "../utils/types";
 import bcrypt from 'bcrypt';
 
 
 export const getProfile = async (req: Request, res: Response) => {
-    const { username } = req.decodedToken as userData;
+    const tokenPayload = res.locals.jwtData as tokenPayload;
 
-    const user = await getUser(username);
+    const user = await getUser(tokenPayload.username);
     if (!user) {
         return res.sendStatus(404);
     }
