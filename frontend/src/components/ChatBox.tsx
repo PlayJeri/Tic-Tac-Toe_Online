@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChatProps } from '../utils/types';
-import { useWebSocketContext } from "../utils/WebSocketContext";
+import { useWebSocketContext } from "../contextProviders/WebSocketContext";
 import "../styles/ChatBox.css";
 
 export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName }) => {
