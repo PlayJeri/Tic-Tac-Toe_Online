@@ -24,6 +24,11 @@ authRouter.post('/register', register);
  */
 authRouter.post('/validate', validateTokenMiddleware, validateLogin);
 
+/**
+ * @route GET /auth-status
+ * @description Verifies users login status
+ * @middleware Validates users authentication token.
+ */
 authRouter.get("/auth-status", validateTokenMiddleware, verifyUser);
 
 export default authRouter;
