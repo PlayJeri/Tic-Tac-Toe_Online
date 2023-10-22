@@ -6,19 +6,19 @@ import { RegisterPage } from './containers/Register'
 import { ProfilePage } from './containers/ProfilePage'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import { WebSocketProvider } from './utils/WebSocketContext'
+import { useAuthContext } from './contextProviders/AuthenticationContextProvider'
 
 const App: React.FC = () => {
+  console.log("user is logged in",useAuthContext()?.isLoggedIn);
+
   return (
     <Router>
-      <WebSocketProvider>
       <Routes>
         <Route path='/' element={<HomePage />} />
         <Route path='/game' element={<Complete />} />
         <Route path='/register' element={<RegisterPage />} />
         <Route path='/profile' element={<ProfilePage />} />
       </Routes>
-      </WebSocketProvider>
     </Router>
   )
 }
