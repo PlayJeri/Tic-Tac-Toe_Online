@@ -4,6 +4,7 @@ import { upgrade } from './websocketController';
 import userRouter from './routers/userRouter';
 import authRouter from './routers/authRouter';
 import profileRouter from './routers/profileRouter';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables
@@ -12,10 +13,14 @@ const PORT = process.env.SERVER_PORT || 3000;
 const app = express();
 
 // CORS policy configurations
-app.use(cors({ origin: process.env.CORS_ORIGINS || "*" }));
+app.use(cors({ 
+    origin: process.env.CORS_ORIGINS,
+    credentials: true,
+ }));
 
 // Middleware
 app.use(express.json());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // Routers
 app.use('/auth', authRouter);
