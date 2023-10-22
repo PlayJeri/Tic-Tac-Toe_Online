@@ -52,7 +52,6 @@ export class Room {
      * @returns {User | null} - The winning user or null if there is no winner yet.
      */
     calculateWinner(connectedUser: User): User | null {
-        const username = connectedUser.username;
         const winningLines: number[][] = [
             [0, 1, 2],
             [3, 4, 5],
