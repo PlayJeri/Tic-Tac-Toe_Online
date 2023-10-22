@@ -2,8 +2,9 @@ import { PrismaClient } from "@prisma/client";
 import { Request, Response } from "express";
 import { validateUsername } from "../utils/authHelpers";
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { createToken } from "../utils/tokenManager";
+import { getUser } from "../utils/prismaHelpers";
 
 // Load environment variables
 dotenv.config();
@@ -37,19 +38,30 @@ export const login = async (req: Request, res: Response) => {
             });
         }
 
-        // Create payload for token with information about the user.
-        const tokenPayload = {
-            userId: user.id,
-            username: user.username
-        }
+        // Clear the old cookie
+        res.clearCookie("auth_token", {
+            domain: "localhost",
+            signed: true,
+            path: "/",
+        });
 
-        // Sign the token with secret key with one hour expiration date.
-        const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '1h' });
+        // Sign the token with secret key with one hour expiration date and set it as HTTP only cookie.
+        const token = createToken(user.id, user.username, "10h")
+        const oneHourFromNow = new Date();
+        oneHourFromNow.setHours(oneHourFromNow.getHours() + 70);
+        res.cookie("auth_token", token, {
+            path: "/",
+            domain: "localhost",
+            expires: oneHourFromNow,
+            signed: true,
+            httpOnly: true,
+        })
 
-        // Return 200 response with the signed JWT
+        // Return 200 response and username + id
         return res.status(200).json({
             message: "Login successful",
-            token: token
+            username: user.username,
+            id: user.id
         })
     } catch (error) {
         // Handles any unexpected errors.
@@ -116,3 +128,27 @@ export const register = async (req: Request, res: Response) => {
 export const validateLogin = (req: Request, res: Response) => {
     return res.sendStatus(200);
 }
+
+
+/**
+ * Verify the user's identity based on the JWT data and return user information.
+ */
+export const verifyUser = async (req: Request, res: Response) => {
+    try {
+        // Retrieve the user based on the JWT data
+        const user = await getUser(res.locals.jwtData!.username);
+
+        // Check if no user is found
+        if (!user) {
+            console.error("Verify user error: No user found");
+            return res.status(401).send("Login verification failed");
+        }
+
+        // Return user information as a JSON response
+        return res.status(200).json({ message: "OK", username: user.username, id: user.id });
+    } catch (error) {
+        // Handle errors during user verification
+        console.error("Verify user error: ", error);
+        return res.status(401).send("Login verification failed");
+    }
+};
