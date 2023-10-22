@@ -1,5 +1,4 @@
 import { WebSocketServer, WebSocket } from "ws";
-import jwt, { verify } from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
@@ -32,7 +31,13 @@ wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage
 
     // Handle WebSocket closing
     ws.on('close', () => {
-        handleClose(ws);
+        const data = {
+            type: "DISCONNECTED",
+            payload: {
+                winner: null,
+            }
+        }
+        handleClose(ws, JSON.stringify(data));
     })
 })
 
@@ -69,8 +74,8 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
             case MessageType.REQUEST_ACCEPTED:
                 handleAcceptFriendRequest(ws, data);
                 break;
-            case MessageType.OPPONENT_DISCONNECTED:
-                handleDisconnectionFromGame(ws);
+            case MessageType.DISCONNECTED:
+                handleDisconnectionFromGame(ws, data);
                 break;
             default:
                 console.log("Unknown message type: ", type);
@@ -116,7 +121,7 @@ function onSocketError(err: Error): void {
  * 
  * @param {WebSocket} ws - WebSocket connection that has been closed.
  */
-const handleClose = (ws: WebSocket) => {
+const handleClose = (ws: WebSocket, data: string) => {
     // Find and remove the disconnected user from connected users.
     const userIndexConnected = connectedUsers.findIndex(user => user.ws === ws);
     if (userIndexConnected !== -1) {
@@ -131,7 +136,7 @@ const handleClose = (ws: WebSocket) => {
     }
 
     // Handles disconnection from game if user is in one.
-    handleDisconnectionFromGame(ws);
+    handleDisconnectionFromGame(ws, data);
 }
 
 /**
@@ -203,6 +208,10 @@ const handleQueueUserMessage = (ws: WebSocket, data: string) => {
                 }
             };
             user.ws.send(JSON.stringify(startMessage));
+
+            // Add current time to connection for tracking how long users play.
+            const connectionStartTime = Date.now();
+            ws.connectionStartTime = connectionStartTime;
         });
     }
 }
@@ -220,7 +229,7 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
         const draw = roomToUpdate.checkDraw();
         if (winner) {
             const loser = roomUsers.find(user => user.username !== username);
-            console.log('winner');
+            console.log('winner', winner.username, "Loser: ", loser?.username);
             addScores(winner, loser!)
         }
         
@@ -236,7 +245,6 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
                     draw: draw
                 }
             }
-            user.ws.connectionStartTime
             user.ws.send(JSON.stringify(message));
         })
     }  
@@ -324,7 +332,9 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
 }
 
 
-const handleDisconnectionFromGame = (ws: WebSocket) => {
+const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
+    const { winner } = JSON.parse(data).payload;
+    console.log(`Winner IS ${winner}`)
 
     const userIndex = queuedUsers.findIndex(user => user.ws === ws);
     if (userIndex !== -1) { queuedUsers.splice(userIndex, 1) };
@@ -348,7 +358,7 @@ const handleDisconnectionFromGame = (ws: WebSocket) => {
         console.log("number of rooms = ", rooms.length);
         console.log('room closed');
 
-        if (otherUser && disconnectedUser) {
+        if (otherUser && disconnectedUser && winner) {
             addScores(otherUser, disconnectedUser);
         }
     }
