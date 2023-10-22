@@ -36,7 +36,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
             console.log(username, password);
             await authContext?.login(username, password); 
 
-            console.log('testi kakka vittu perse');
             showCustomAlert("Login successful!", "success");
             setShowModal(false);
 
