@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import GameBoard from "../components/GameBoard";
-import jwtDecode from "jwt-decode";
-import { DecodedAccessToken } from "../utils/types";
 import { NavBar } from "../components/NavBar";
 import { ChatBox } from "../components/ChatBox";
 import '../styles/Complete.css';
 import { Container, Button, Col, Row, Toast } from "react-bootstrap";
-import { useWebSocketContext } from "../utils/WebSocketContext";
+import { useWebSocketContext } from "../contextProviders/WebSocketContext";
+import { useAuthContext } from "../contextProviders/AuthenticationContextProvider";
 
 export const Complete: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -22,9 +21,10 @@ export const Complete: React.FC = () => {
     const [winner, setWinner] = useState<string | null>(null);
     const [messages, setMessages] = useState<{ text: string; username: string }[]>([]);
     
-    const { webSocket } = useWebSocketContext();
-    const accessToken = localStorage.getItem("access_token");
+    const wsContext = useWebSocketContext();
+    const authContext = useAuthContext();
     const location = useLocation();
+    const webSocket = wsContext.webSocket;
 
     const toggleShowToast = () => setShowToast(!showToast);
 
@@ -32,8 +32,11 @@ export const Complete: React.FC = () => {
         handleConnect();
 
         const handleDisconnect = () => {
-            webSocket?.send(JSON.stringify({
-                type: "OPPONENT_DISCONNECTED"
+            wsContext.webSocket?.send(JSON.stringify({
+                type: "DISCONNECTED",
+                payload: {
+                    winner: winner
+                }
             }))
         }
 
@@ -45,20 +48,19 @@ export const Complete: React.FC = () => {
     }, [, location])
 
     const handleConnect = () => {
-        if (!accessToken) return;
-        const decodedToken: DecodedAccessToken = jwtDecode(accessToken);
         setSearching(true);
         const ws = webSocket;
         if (!ws) return;
 
-        console.log(decodedToken.username, "connected to WebSocket server");
+        const contextUsername = authContext?.user?.username;
+        console.log(contextUsername, "connected to WebSocket server");
+        if (!contextUsername) return;
         ws.send(JSON.stringify({
             type: 'QUEUE_USER',
             payload: {
-                username: decodedToken.username,
-                accessToken: accessToken,
+                username: contextUsername,
             } }));
-        setUsername(decodedToken.username);
+        setUsername(contextUsername);
 
         ws.onmessage = (event) => {
             const { type, message } = JSON.parse(event.data);
@@ -67,7 +69,7 @@ export const Complete: React.FC = () => {
                 console.log("game started");
                 setSearching(false);
                 setRoomName(message.roomName);
-                if (message.starter === decodedToken.username) {
+                if (message.starter === contextUsername) {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
@@ -81,7 +83,7 @@ export const Complete: React.FC = () => {
                 if (message.winner) {
                     setWinner(message.winner);
                     setYourTurn(false);
-                } else if (message.playerTurn === decodedToken.username) {
+                } else if (message.playerTurn === contextUsername) {
                     setYourTurn(true);
                 }
                 setGameState(message.gameState);
@@ -91,7 +93,7 @@ export const Complete: React.FC = () => {
                 setWinner(null);
                 setGameState(message.gameState);
                 setGameStarted(true);
-                if (message.starter === decodedToken.username) {
+                if (message.starter === contextUsername) {
                     setYourTurn(true);
                 }
                 setPlayAgain("");
@@ -129,6 +131,7 @@ export const Complete: React.FC = () => {
         if (!yourTurn) {
             return;
         }
+        console.log("NEW MOVE MESSAGE", username);
         webSocket?.send(JSON.stringify({ 
             type: "NEW_MOVE",
             payload: {
