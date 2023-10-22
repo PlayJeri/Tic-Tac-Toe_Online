@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { login, register, validateLogin } from "../controllers/authControllers";
+import { login, register, validateLogin, verifyUser } from "../controllers/authControllers";
 import { validateTokenMiddleware } from "../utils/middleware";
+
 
 const authRouter = Router();
 
@@ -22,5 +23,7 @@ authRouter.post('/register', register);
  * @middleware Validates users authentication token.
  */
 authRouter.post('/validate', validateTokenMiddleware, validateLogin);
+
+authRouter.get("/auth-status", validateTokenMiddleware, verifyUser);
 
 export default authRouter;
