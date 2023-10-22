@@ -217,22 +217,41 @@ const handleQueueUserMessage = (ws: WebSocket, data: string) => {
 }
 
 
+/**
+ * This function is responsible for processing and handling a new move message received from a WebSocket client.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
 const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
+    // Parse the message data to extract relevant information
     const { roomName, index, username }: NewMove = JSON.parse(data).payload;
+
+    // Find the room to update based on the roomName
     const roomToUpdate = rooms.find(room => room.name === roomName);
 
     if (roomToUpdate) {
+        // Update the game state with the new move
         roomToUpdate.setGameState(index);
+
+        // Get the users in the room
         const roomUsers = roomToUpdate.users;
+
+        // Find the user who made the move
         const user = roomUsers.find(user => user.username === username);
-        const winner = roomToUpdate.calculateWinner(user!)
+
+        // Calculate the winner and check for a draw
+        const winner = roomToUpdate.calculateWinner(user!);
         const draw = roomToUpdate.checkDraw();
+
+        // If there's a winner, update scores and log the winner and loser
         if (winner) {
             const loser = roomUsers.find(user => user.username !== username);
-            console.log('winner', winner.username, "Loser: ", loser?.username);
-            addScores(winner, loser!)
+            console.log('Winner:', winner.username, 'Loser:', loser?.username);
+            addScores(winner, loser!);
         }
-        
+
+        // Prepare and send a message to each user in the room
         roomUsers.forEach(user => {
             const message = {
                 type: 'GAME_UPDATED',
@@ -244,20 +263,36 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
                     winner: winner?.username,
                     draw: draw
                 }
-            }
+            };
             user.ws.send(JSON.stringify(message));
-        })
-    }  
+        });
+    }
 }
 
+
+/**
+ * Handle a game reset request received from a WebSocket client.
+ * This function is responsible for processing and handling a game reset request received from a WebSocket client.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
 const handleResetGame = (ws: WebSocket, data: string) => {
+    // Parse the message data to extract relevant information
     const { username, roomName } = JSON.parse(data).payload;
+
+    // Find the room to update based on the roomName
     const roomToUpdate = rooms.find(room => room.name === roomName);
 
     if (roomToUpdate) {
+        // Attempt to reset the game, which returns true if successful
         const reset = roomToUpdate.resetGame(username);
+
+        // Get the users in the room
         const roomUsers = roomToUpdate.users;
+
         if (reset) {
+            // Send a game reset message to each user in the room
             roomUsers.forEach(user => {
                 const message = {
                     type: 'GAME_RESET',
@@ -265,33 +300,50 @@ const handleResetGame = (ws: WebSocket, data: string) => {
                         starter: roomToUpdate.currentTurn,
                         gameState: roomToUpdate.gameState,
                         lastIndex: roomToUpdate.lastIndex,
-                        nextCharacter: roomToUpdate.nextChar,  
+                        nextCharacter: roomToUpdate.nextChar,
                     }
-                }
+                };
                 user.ws.send(JSON.stringify(message));
+
+                // Update the connectionStartTime for each user
                 user.ws.connectionStartTime = Date.now();
             })
         } else {
+            // Notify the other player that a reset request has been received
             const messageReceiver = roomUsers.find(user => user.username !== username);
-            const message = {
-                type: 'PLAY_AGAIN',
-                message: {
-                    username: username,
-                    text: `${username} wants to play again!`
-                }
-            };
-            messageReceiver?.ws.send(JSON.stringify(message));
+            if (messageReceiver) {
+                const message = {
+                    type: 'PLAY_AGAIN',
+                    message: {
+                        username: username,
+                        text: `${username} wants to play again!`
+                    }
+                };
+                messageReceiver.ws.send(JSON.stringify(message));
+            }
         }
     }
 }
 
+
+/**
+ * This function processes and broadcasts a chat message received from a WebSocket client to all users in the same room.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
 const handleChatMessage = (ws: WebSocket, data: string) => {
+    // Parse the message data to extract relevant information
     const { newMessage, roomName, username } = JSON.parse(data).payload;
+
+    // Find the chat room based on the roomName
     const chatRoom = rooms.find(room => room.name === roomName);
 
     if (chatRoom) {
+        // Get the users in the chat room
         const roomUsers = chatRoom.users;
 
+        // Broadcast the chat message to all users in the room
         roomUsers.forEach(user => {
             const message = {
                 type: 'CHAT_MESSAGE',
@@ -299,78 +351,140 @@ const handleChatMessage = (ws: WebSocket, data: string) => {
                     message: newMessage,
                     username: username
                 }
-            }
+            };
+
+            // Send the chat message to the user's WebSocket connection
             user.ws.send(JSON.stringify(message));
-        })
+        });
     }
 }
 
+
+/**
+ * This function processes a friend request message received from a WebSocket client.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
 export const handleFriendRequestMessage = async (ws: WebSocket, data: string) => {
-
+    // Parse the message data to extract relevant information
     const { roomName, username } = JSON.parse(data).payload;
-    const room = rooms.find(room => room.name === roomName)
-    if (!room) return;
 
+    // Find the room based on the roomName
+    const room = rooms.find(room => room.name === roomName);
+
+    if (!room) {
+        return; // If the room doesn't exist, exit the function.
+    }
+
+    // Create a friend request message to send to the other user
     const message = {
         type: 'FRIEND_REQUEST',
         message: {
-            message: `${username} want to add you as a friend!`,
+            message: `${username} wants to add you as a friend!`,
             user: username
         }
-    }
+    };
+
+    // Find the other user (the potential friend) in the room
     const friend = room.users.find(user => user.username !== username);
-    if (!friend) return;
-    console.log('message sent to ', friend.username);
+
+    if (!friend) {
+        return; // If the other user (friend) doesn't exist, exit the function.
+    }
+
+    // Log the message being sent to the friend
+    console.log('Friend request message sent to', friend.username);
+
+    // Send the friend request message to the friend's WebSocket connection
     friend.ws.send(JSON.stringify(message));
 
+    // Retrieve user data for the sender (username) and the potential friend
     const user = await getUser(username);
     const friendUser = await getUser(friend.username);
 
-    if (!user || !friendUser) return;
+    // Check if either user data is missing, and if so, exit the function.
+    if (!user || !friendUser) {
+        return;
+    }
 
+    // Create a pending friendship between the two users
     createPendingFriendship(user.id, friendUser.id);
 }
 
 
+/**
+ * This function processes a disconnection from a game for a WebSocket client.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
 const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
+    // Parse the message data to extract the winner information
     const { winner } = JSON.parse(data).payload;
-    console.log(`Winner IS ${winner}`)
+    console.log(`Winner IS ${winner}`);
 
+    // Find the index of the disconnected user in the queuedUsers array
     const userIndex = queuedUsers.findIndex(user => user.ws === ws);
-    if (userIndex !== -1) { queuedUsers.splice(userIndex, 1) };
+    if (userIndex !== -1) {
+        queuedUsers.splice(userIndex, 1);
+    }
 
+    // Find the index of the room where the disconnection occurred
     const roomIndex = rooms.findIndex(room => room.users[0].ws === ws || room.users[1].ws === ws);
-    const roomUsers = rooms[roomIndex]?.users
-    if (roomIndex !== -1) {
-        console.log("number of rooms = ", rooms.length)
+    const roomUsers = rooms[roomIndex]?.users;
 
+    if (roomIndex !== -1) {
+        console.log("Number of rooms = ", rooms.length);
+
+        // Find the user who disconnected and the other user in the room
         const disconnectedUser = roomUsers.find(user => user.ws === ws);
         const otherUser = roomUsers.find(user => user.ws !== ws);
 
+        // Send a message to the other user indicating that their opponent disconnected
         const opponentDisconnectedMessage = {
             type: 'OPPONENT_DISCONNECTED'
-        }
-
+        };
         otherUser?.ws.send(JSON.stringify(opponentDisconnectedMessage));
 
+        // Remove the room from the rooms array
         rooms.splice(roomIndex, 1);
 
-        console.log("number of rooms = ", rooms.length);
-        console.log('room closed');
+        console.log("Number of rooms = ", rooms.length);
+        console.log('Room closed');
 
+        // If there is another user and the disconnected user and a winner, update scores
         if (otherUser && disconnectedUser && winner) {
             addScores(otherUser, disconnectedUser);
         }
     }
 };
 
-const handleAcceptFriendRequest = async (ws: WebSocket, data: string) => {
-    const { username, friendUsername } = JSON.parse(data).payload;
-    if (!username || !friendUsername) return;
 
+/**
+ * This function processes an acceptance of a friend request received from a WebSocket client.
+ *
+ * @param {WebSocket} ws - The WebSocket connection.
+ * @param {string} data - The message data in JSON format.
+ */
+const handleAcceptFriendRequest = async (ws: WebSocket, data: string) => {
+    // Parse the message data to extract the usernames of the user and friend
+    const { username, friendUsername } = JSON.parse(data).payload;
+
+    // Ensure both usernames are provided
+    if (!username || !friendUsername) {
+        return;
+    }
+
+    // Retrieve user and friend data from the database
     const user = await getUser(username);
     const friend = await getUser(friendUsername);
-    if (!user || !friend) return;
 
+    // If either user or friend data is missing, exit the function
+    if (!user || !friend) {
+        return;
+    }
+
+    // Accept the pending friendship between the two users
     acceptPendingFriendship(user.id, friend.id);
 }
