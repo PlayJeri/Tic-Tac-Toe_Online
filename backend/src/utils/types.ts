@@ -12,8 +12,9 @@ export interface NewMove {
     username:  string;
 }
 
-export interface userData {
+export interface tokenPayload {
     username: string;
+    userId: number;
 }
 
 export interface DecodedAccessToken {
