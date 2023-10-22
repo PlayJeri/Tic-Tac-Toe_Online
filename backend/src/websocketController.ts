@@ -6,31 +6,46 @@ import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
 import { acceptPendingFriendship, addScores, createPendingFriendship, getUser } from "./utils/prismaHelpers";
-import { acceptFriendshipRequest } from "./controllers/userControllers";
-dotenv.config();
 
+// Load environment variables
+dotenv.config();
 const secretKey = process.env.SECRET_KEY!;
 
+// Initialize new web socket server
 const wss = new WebSocketServer({ noServer: true });
 
+// Arrays to store connected users, queued users and game rooms.
 const connectedUsers: User[] = [];
 const queuedUsers: User[] = [];
 const rooms: Room[] = [];
 
+// WebSocket server connection event
 wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage, client: any) {
-    console.log('connection');
+    
+    // Handle WebSocket errors
     ws.on('error', console.error);
+
+    // Handle WebSocket messages
     ws.on('message', (data: string) => {
         handleIncomingMessage(data, ws);
     });
+
+    // Handle WebSocket closing
     ws.on('close', () => {
         handleClose(ws);
     })
 })
 
+/**
+ * Handle incoming WebSocket messages.
+ * 
+ * @param {string} data - Incoming data as a string.
+ * @param {WebSocket} ws - The WebSocket connection.
+ */
 const handleIncomingMessage = (data: string, ws: WebSocket) => {
     console.log("data", data.toString());
     try {
+        // Determine messages type and call the corresponding handler function.
         const { type } = JSON.parse(data);
         switch(type) {
             case MessageType.NEW_USER:
@@ -66,97 +81,117 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
     }
 }
 
+/**
+ * Upgrades a provided server to a WebSocket server to enable WebSocket connections.
+ * 
+ * @param {HttpServer} server - The server to connect the WebSocket controller to.
+ */
 export function upgrade(server: HttpServer) {
     server.on('upgrade', (request, socket, head) => {
         socket.on('error', onSocketError);
-    
-        const token = request.url?.split('?')[1]?.split('=')[1];
-    
-        if (!token) {
-            console.error("No token found");
-            socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-            socket.destroy();
-            return;
-        }
-    
         try {
-            const client = jwt.verify(token, secretKey);
-            const decodedToken = jwt.decode(token) as DecodedAccessToken
-        
             socket.removeListener('error', onSocketError);
         
+            // Upgrade the connection to a WebSocket connection.
             wss.handleUpgrade(request, socket, head, (ws) => {
-                wss.emit('connection', ws, request, client);
+                wss.emit('connection', ws, request);
             })
-            console.log(decodedToken.username, "connected with ws");
-
         } catch (error) {
-            if (error instanceof jwt.TokenExpiredError) {
-                console.error('Token has expired:', error.message)
-            } else {
-                console.error('Token verification failed', error);
-            }
+            console.error('Connection upgrade failed:', error);
         }
     })
 }
 
-
+/**
+ * Handles and logs errors that might occur in socket upgrade.
+ * 
+ * @param {Error} err - The error to be logged.
+ */
 function onSocketError(err: Error): void {
     console.error(err);
 }
 
+/**
+ * Handles the closing of a WebSocket connection.
+ * 
+ * @param {WebSocket} ws - WebSocket connection that has been closed.
+ */
 const handleClose = (ws: WebSocket) => {
-    console.log("WebSocket connection closed");
-
+    // Find and remove the disconnected user from connected users.
     const userIndexConnected = connectedUsers.findIndex(user => user.ws === ws);
     if (userIndexConnected !== -1) {
-        console.log(`User ${connectedUsers[userIndexConnected].username} disconnected`)
         connectedUsers.splice(userIndexConnected, 1);
     }
 
+    // Find and remove the disconnected user from queued users.
     const userIndexQueued = queuedUsers.findIndex(user => user.ws === ws);
     if (userIndexQueued !== -1) {
         const username = queuedUsers[userIndexQueued].username;
-        console.log(`User disconnected" ${username}`)
         queuedUsers.splice(userIndexQueued, 1);
     }
+
+    // Handles disconnection from game if user is in one.
     handleDisconnectionFromGame(ws);
 }
 
+/**
+ * Handles a new user type message, and sends confirmation message if successful.
+ * 
+ * @param {WebSocket} ws - WebSocket connection of the new user.
+ * @param {String} data - Stringified JSON containing user data.
+ * @returns 
+ */
 const handleNewUserMessage = (ws: WebSocket, data: string) => {
+    // Parse the JSON data to extract the username.
     const { username } = JSON.parse(data).payload;
+
+    // Checks if the user is already on the connected list. If so return early, else add user to the list. 
     const userAlreadyConnected = connectedUsers.some(user => user.ws === ws && user.username === username);
     if (userAlreadyConnected) return;
-    console.log(`USERNAME IS ${username}`)
     connectedUsers.push({ ws, username });
-    console.log(username, "joined");
 
+    // Confirmation message for the new user.
     const connectedMessage = {
         type: 'CONNECTED',
         message: {
             message: 'Connected successfully!!'
         }
     }
+
+    // Stringify and send the message to the new user.
     ws.send(JSON.stringify(connectedMessage));
 }
 
+
+/**
+ * Handles a queue user type message by adding the user to queue and starting a game if opponent if found.
+ *
+ * @param {WebSocket} ws - WebSocket connection of the user sending the message.
+ * @param {string} data - JSON string containing username.
+ */
 const handleQueueUserMessage = (ws: WebSocket, data: string) => {
+    // Parse the JSON data to extract the username.
     const { username } = JSON.parse(data).payload;
 
+    // Check if the user is already queued. If so return early.
     const userAlreadyQueued = queuedUsers.some(user => user.ws === ws || user.username === username);
     if (userAlreadyQueued) return;
 
+    // Add current time to connection for tracking how long users play.
     const connectionStartTime = Date.now();
     ws.connectionStartTime = connectionStartTime;
-    queuedUsers.push({ ws, username: username });
-    console.log('queuedUsers len = ', queuedUsers.length);
 
+    // Add the user to the list of queued users.
+    queuedUsers.push({ ws, username: username });
+
+    // Check if there are enough users in the queue to start a game.
     if (queuedUsers.length >= 2) {
+        // Create a room with the first two users from the queue.
         const roomUsers = queuedUsers.splice(0, 2);
         const room = new Room(roomUsers);
         rooms.push(room);
-        console.log('New room created');
 
+        // Notify the users in the room that the game is starting.
         roomUsers.forEach(user => {
             const startMessage = {
                 type: 'START_GAME',
@@ -168,9 +203,10 @@ const handleQueueUserMessage = (ws: WebSocket, data: string) => {
                 }
             };
             user.ws.send(JSON.stringify(startMessage));
-        })
+        });
     }
 }
+
 
 const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
     const { roomName, index, username }: NewMove = JSON.parse(data).payload;
