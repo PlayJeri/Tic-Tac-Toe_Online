@@ -1,56 +1,38 @@
 import React, { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
+import { useAuthContext } from "../contextProviders/AuthenticationContextProvider";
+import { AxiosError } from "axios";
+
 
 export const RegisterPage: React.FC = () => {
+    const authContext = useAuthContext();
+
     const [alertMessage, setAlertMessage] = useState({
         message: "",
         variant: ""
     })
-    const [formData, setFormData] = useState({
-        username: "",
-        password: "",
-        confirmPassword: ""
-    });
 
-    const [passwordsMatch, setPasswordsMatch] = useState(true);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-    async function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        if (formData.password === formData.confirmPassword) {
-            const response = await fetch("http://localhost:3000/auth/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username: formData.username,
-                    password: formData.password,
-                    password2: formData.confirmPassword
-                })
-            });
+        const formData = new FormData(e.currentTarget);
+        const username = formData.get("username") as string;
+        const password = formData.get("password") as string;
+        const confirmPassword = formData.get("confirmPassword") as string;
+        if (password === confirmPassword) {
+            try {
+                await authContext?.register(username, password, confirmPassword);
+                setAlertMessage({ message: "Account created", variant: "success" });
 
-            if (response.status === 201) {
-                console.log("Account created successfully");
-                console.log(response);
-                setAlertMessage({ message: "Account created successfully!", variant: "success" });
-                setPasswordsMatch(true);
-            } else {
-                const errorData = await response.json();
-                console.log(errorData.error);
-                setAlertMessage({ message: errorData.error, variant: "danger" });
-                setPasswordsMatch(false);
+            } catch (error) {
+                if (error instanceof AxiosError) {
+                    setAlertMessage({ message: error.response?.data, variant: "danger" });
+                } else {
+                    console.error(error);
+                    setAlertMessage({ message: "Account registration failed", variant: "danger" });
+                }
             }
         } else {
-            setAlertMessage({ message: "Passwords didn't match", variant: "danger" });
-            setPasswordsMatch(false);
+            setAlertMessage({ message: "Passwords don't match", variant: "danger" });
         }
     }
 
@@ -61,8 +43,6 @@ export const RegisterPage: React.FC = () => {
                 <Form.Control
                     type="text"
                     name="username"
-                    value={formData.username}
-                    onChange={handleChange}
                     required
                     />
             </Form.Group>
@@ -71,8 +51,6 @@ export const RegisterPage: React.FC = () => {
                 <Form.Control
                     type="password"
                     name="password"
-                    value={formData.password}
-                    onChange={handleChange}
                     required
                     />
             </Form.Group>
@@ -81,8 +59,6 @@ export const RegisterPage: React.FC = () => {
                 <Form.Control
                     type="password"
                     name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
                     required
                     />
             </Form.Group>
