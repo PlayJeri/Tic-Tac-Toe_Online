@@ -50,9 +50,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
 
     return (
         <>
-            <Button variant="outline-success" onClick={handleModalOpen}>
-                Login
-            </Button>
+            {authContext?.isLoggedIn
+            ?
+                <Button variant="outline-danger" onClick={authContext?.logout}>
+                    Logout
+                </Button>
+            :
+                <Button variant="outline-success" onClick={handleModalOpen}>
+                    Login
+                </Button>
+            }
 
             <Modal
                 show={showModal}
