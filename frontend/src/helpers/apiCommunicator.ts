@@ -29,3 +29,22 @@ export const getProfileData = async () => {
     const data = await res.data;
     return data;
 };
+
+export const registerUser = async (username: string, password: string, retypePassword: string) => {
+    const res = await axios.post("/auth/register", { username, password, retypePassword } );
+    if (res.status !== 201) {
+        return null
+    }
+    const data = await res.data;
+    return data;
+};
+
+
+export const logoutUser = async () => {
+    const res = await axios.post("/auth/logout");
+    if (res.status !== 200) {
+        return null
+    };
+    const data = await res.data;
+    return data;
+};
