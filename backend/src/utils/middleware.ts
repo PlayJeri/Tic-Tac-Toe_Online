@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import { secretKey } from "../controllers/authControllers";
-import { DecodedAccessToken, tokenPayload } from "./types";
+import { DecodedAccessToken } from "./types";
 import jwt from 'jsonwebtoken';
 
 
