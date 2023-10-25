@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, validateLogin, verifyUser } from "../controllers/authControllers";
+import { login, register, validateLogin, verifyUser, logoutUser } from "../controllers/authControllers";
 import { validateTokenMiddleware } from "../utils/middleware";
 
 
@@ -25,10 +25,17 @@ authRouter.post('/register', register);
 authRouter.post('/validate', validateTokenMiddleware, validateLogin);
 
 /**
- * @route GET /auth-status
+ * @route GET /auth/auth-status
  * @description Verifies users login status
  * @middleware Validates users authentication token.
  */
 authRouter.get("/auth-status", validateTokenMiddleware, verifyUser);
+
+/**
+ * @route POST /auth/logout
+ * @description Logs out the user by clearing auth_token cookie
+ * @middleware Validates users authentication token.
+ */
+authRouter.post("/logout", validateTokenMiddleware, logoutUser);
 
 export default authRouter;

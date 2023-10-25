@@ -152,3 +152,30 @@ export const verifyUser = async (req: Request, res: Response) => {
         return res.status(401).send("Login verification failed");
     }
 };
+
+
+export const logoutUser = async (req: Request, res: Response) => {
+    try {
+        console.log("Logout user");
+        const user = await getUser(res.locals.jwtData!.username);
+        if (!user) {
+            return res.status(404).send("User not found. Logout failed");
+        }
+        if (user.id !== res.locals.jwtData!.userId) {
+            console.log("user.id", user.id, " | jwtData.userId", res.locals.jwtData!.userId);
+            return res.status(401).send("Unauthorized");
+        }
+
+        res.clearCookie("auth_token" , {
+            httpOnly: true,
+            domain: "localhost",
+            signed: true,
+            path: "/",
+        });
+
+        return res.status(200).json({ message: "User logged out" });
+    } catch (error) {
+        console.error("Logout error ", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
