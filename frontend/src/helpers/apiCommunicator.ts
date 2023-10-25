@@ -2,49 +2,53 @@ import axios from "axios";
 
 
 export const loginUser = async (username: string, password: string) => {
-    console.log('login user', username, password);
-    const res = await axios.post("/auth/login", { username, password });
-    if (res.status !== 200) {
-        throw new Error("Login failed");
+    try {
+        console.log('login user', username, password);
+        const res = await axios.post("/auth/login", { username, password });
+        const data = await res.data;
+        return data;
+    } catch (error) {
+        throw error;
     }
-    const data = await res.data;
-    console.log(data);
-    return data;
 };
 
 export const checkAuthStatus = async () => {
-    const res = await axios.get("/auth/auth-status");
-    if (res.status !== 200) {
-        throw new Error("Login failed");
+    try {
+        const res = await axios.get("/auth/auth-status");
+        const data = await res.data;
+        return data;
+    } catch (error) {
+        throw error;
     }
-    const data = await res.data;
-    return data;
 };
 
 export const getProfileData = async () => {
-    const res = await axios.get("/profile/");
-    if (res.status !== 200) {
-        throw new Error("Getting profile data failed");
+    try {
+        const res = await axios.get("/profile/");
+        const data = await res.data;
+        return data;
+    } catch (error) {
+        throw error;
     }
-    const data = await res.data;
-    return data;
 };
 
 export const registerUser = async (username: string, password: string, retypePassword: string) => {
-    const res = await axios.post("/auth/register", { username, password, retypePassword } );
-    if (res.status !== 201) {
-        return null
+    try {
+        const res = await axios.post("/auth/register", { username, password, retypePassword } );
+        const data = await res.data;
+        return data
+    } catch (error) {
+        throw error;
     }
-    const data = await res.data;
-    return data;
 };
 
 
 export const logoutUser = async () => {
-    const res = await axios.post("/auth/logout");
-    if (res.status !== 200) {
-        return null
-    };
-    const data = await res.data;
-    return data;
-};
+    try {
+        const res = await axios.post("/auth/logout");
+        const data = await res.data;
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
