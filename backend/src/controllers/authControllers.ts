@@ -75,22 +75,22 @@ export const login = async (req: Request, res: Response) => {
 export const register = async (req: Request, res: Response) => {
     try {
         // Destructure registration data from the request body.
-        const { username, password, password2 } = req.body;
+        const { username, password, retypePassword } = req.body;
 
         // Check if the 'username' field is missing. Return 400 if so.
         if (!username) {
-            return res.status(400).json({ error: "username is missing" });
+            return res.status(400).send("username is missing");
         }
 
         // Check if 'password' and 'password2' fields are missing or do not match. Return 400 if so.
-        if (!password || !password2 || password !== password2) {
-            return res.status(400).json({ error: "passwords missing or did not match" });
+        if (!password || !retypePassword || password !== retypePassword) {
+            return res.status(400).send("passwords missing or did not match");
         }
 
         // Validates the username with helper function. Returns 400 if invalid.
         const validUsername = await validateUsername(username);
         if (validUsername !== true) {
-            return res.status(400).json({ error: validUsername });
+            return res.status(400).send(validUsername);
         }
 
         // Hash the user's password before storing it in the database.
