@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { checkAuthStatus, loginUser } from "../helpers/apiCommunicator";
+import { checkAuthStatus, loginUser, logoutUser, registerUser } from "../helpers/apiCommunicator";
 
 interface User {
     username: string;
@@ -41,9 +41,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setIsLoggedIn(true);
     };
 
-    const logout = async () => {};
+    const logout = async () => {
+        const data = await logoutUser();
+        if (!data) {
+            throw new Error("Logout failed");
+        }
+        setUser(null);
+        setIsLoggedIn(false);
+        window.location.reload();
+    };
 
-    const register = async (username: string, password: string, retypePassword: string) => {};
+    const register = async (username: string, password: string, retypePassword: string) => {
+        const data = await registerUser(username, password, retypePassword);
+        if (!data) throw new Error("Registration failed");
+
+        login(username, password);
+    };
 
     const contextValue = {
         user,
