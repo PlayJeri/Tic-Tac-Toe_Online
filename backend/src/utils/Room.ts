@@ -19,10 +19,10 @@ export class Room {
     constructor(users: User[]) {
         this.users = users;
         this.gameState = Array(9).fill(null);
-        this.currentTurn = users[Math.floor(Math.random() * 2)].username || '';
-        this.name = `${users[0].username}+${users[1].username}` || "random";
+        this.currentTurn = users[Math.floor(Math.random() * 2)].username; // Randomly chooses who goes first.
+        this.name = `${users[0].username}+${users[1].username}`;
         this.lastIndex = null;
-        this.nextChar = Math.floor(Math.random() * 2) == 1 ? "X" : "O";
+        this.nextChar = Math.floor(Math.random() * 2) == 1 ? "X" : "O"; // Randomly chooses character for player.
         this.playAgain = [];
     }
 
