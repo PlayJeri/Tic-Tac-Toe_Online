@@ -9,9 +9,9 @@ interface User {
 interface UserAuth {
     isLoggedIn: boolean;
     user: User | null;
-    login: (username: string, password: string) => Promise<void>;
-    register: (username: string, password: string, retypePassword: string) => Promise<void>;
-    logout: () => Promise<void>;
+    login: (username: string, password: string) => Promise<any>;
+    register: (username: string, password: string, retypePassword: string) => Promise<any>;
+    logout: () => Promise<any>;
 }
 
 const AuthContext = createContext<UserAuth | null>(null);
@@ -52,10 +52,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (username: string, password: string, retypePassword: string) => {
-        const data = await registerUser(username, password, retypePassword);
-        if (!data) throw new Error("Registration failed");
+        try {
+            const data = await registerUser(username, password, retypePassword);
+            login(username, password);
 
-        login(username, password);
+            setTimeout(() => {
+                window.location.replace("/");
+            }, 2000)
+            
+            return data;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const contextValue = {
