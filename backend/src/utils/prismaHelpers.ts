@@ -1,8 +1,16 @@
 import { PrismaClient } from "@prisma/client";
-import { User } from "./types";
+import { User, UserDatabase } from "./types";
 
+// Create a Prisma client instance.
 const prisma = new PrismaClient();
 
+
+/**
+ * Update a user's password in the database.
+ * @param {string} username - The username of the user.
+ * @param {string} newHashedPassword - The new hashed password to be set for the user.
+ * @returns {Promise<Error | null>} - Returns null on success, an Error object on failure.
+ */
 export async function updateUserPassword(username: string, newHashedPassword: string): Promise<Error | null> {
     try {
         await prisma.user.update({
@@ -13,27 +21,37 @@ export async function updateUserPassword(username: string, newHashedPassword: st
                 password: newHashedPassword
             }
         });
-        return null
+        return null;
     } catch (error: any) {
         console.error(error);
-        return error       
+        return error;
     }
 }
 
-
-export async function getUser(username: string) {
+/**
+ * Get a user's information by their username.
+ * @param {string} username - The username of the user to retrieve.
+ * @returns {Promise<UserDatabase | null>} - Returns the user object on success, null on failure.
+ */
+export async function getUser(username: string): Promise<UserDatabase | null> {
     try {
         const user = await prisma.user.findUniqueOrThrow({
             where: {
                 username: username
             }
-        })
+        });
         return user
     } catch (error) {
         console.error('Error finding user:', error);
+        return null
     }
 }
 
+/**
+ * Update user scores and time played for a winner and loser.
+ * @param {User} winner - The user who won.
+ * @param {User} loser - The user who lost.
+ */
 export async function addScores(winner: User, loser: User) {
     try {
         const winnerTimePlayed = (Date.now() - winner.ws.connectionStartTime!) / 1000;
@@ -69,6 +87,12 @@ export async function addScores(winner: User, loser: User) {
     }
 }
 
+/**
+ * Create a pending friendship between two users.
+ * @param {number} currentUserId - The ID of the current user initiating the friendship.
+ * @param {number} newFriendId - The ID of the user to befriend.
+ * @returns {Promise<Error | null>} - Returns null on success, an Error object on failure.
+ */
 export async function createPendingFriendship(currentUserId: number, newFriendId: number): Promise<Error | null> {
     try {
         const friendship = await prisma.friends.create({
@@ -85,6 +109,12 @@ export async function createPendingFriendship(currentUserId: number, newFriendId
     }
 }
 
+/**
+ * Accept a pending friendship request.
+ * @param {number} currentUserId - The ID of the current user accepting the friendship request.
+ * @param {number} requesterId - The ID of the user who sent the request.
+ * @returns {Promise<Error | null>} - Returns null on success, an Error object on failure.
+ */
 export async function acceptPendingFriendship(currentUserId: number, requesterId: number): Promise<Error | null> {
     try {
         const acceptedFriendship = await prisma.friends.update({
