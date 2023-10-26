@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, register, validateLogin, verifyUser, logoutUser } from "../controllers/authControllers";
+import { login, register, verifyUser, logoutUser } from "../controllers/authControllers";
 import { validateTokenMiddleware } from "../utils/middleware";
 
 
@@ -16,13 +16,6 @@ authRouter.post('/login', login);
  * @description Logic for registering a new user.
  */
 authRouter.post('/register', register);
-
-/**
- * @route POST /auth/validate
- * @description Checks if user if logged in.
- * @middleware Validates users authentication token.
- */
-authRouter.post('/validate', validateTokenMiddleware, validateLogin);
 
 /**
  * @route GET /auth/auth-status
