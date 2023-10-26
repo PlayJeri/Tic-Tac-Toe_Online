@@ -1,3 +1,4 @@
+import { Badge, ListGroup } from 'react-bootstrap';
 import { ProfileInfo } from '../utils/types';
 
 
@@ -12,21 +13,33 @@ export const ProfileInfoListComponent: React.FC<ProfileInfo> = ({ wins, losses, 
       }
 
     return (
-        <div className="col-6 mx-auto">
-        <ul className="list-group border-success">
-        <li className="list-group-item border-secondary d-flex justify-content-between align-items-center">
-          Wins
-          <span className="badge bg-primary rounded-pill">{wins}</span>
-        </li>
-        <li className="list-group-item border-secondary d-flex justify-content-between align-items-center">
-          Losses
-          <span className="badge bg-primary rounded-pill">{losses}</span>
-        </li>
-        <li className="list-group-item border-secondary d-flex justify-content-between align-items-center">
-          Time Played
-          <span className="badge bg-primary rounded-pill">{formatGameTime(secondsPlayed)}</span>
-        </li>
-      </ul>
-        </div>
+      <>
+      <ListGroup as='ul'>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+          <div className="fw-bold">
+            Wins
+          </div>
+          <Badge bg='primary' pill>
+            {wins}
+          </Badge>
+        </ListGroup.Item>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+          <div className="fw-bold">
+            Losses
+          </div>
+          <Badge bg='primary' pill>
+            {losses}
+          </Badge>
+        </ListGroup.Item>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+          <div className="fw-bold">
+            Time Played
+          </div>
+          <Badge bg='primary' pill>
+            {formatGameTime(secondsPlayed)}
+          </Badge>
+        </ListGroup.Item>
+      </ListGroup>
+      </>
     )
 }
