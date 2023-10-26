@@ -11,8 +11,9 @@ dotenv.config();
 const prisma = new PrismaClient();
 export const secretKey = process.env.SECRET_KEY!;
 
-
-// Handles user login and returns JWT token if login is successful.
+/**
+ * Handles user login and returns JWT token if login is successful.
+ */
 export const login = async (req: Request, res: Response) => {
     try {
         // Extract username and password from request body.
@@ -70,8 +71,9 @@ export const login = async (req: Request, res: Response) => {
     }
 }
 
-
-// Handles user registration by validating input and creating a new user in the database.
+/**
+ * Handles user registration by validating input and creating a new user in the database.
+ */
 export const register = async (req: Request, res: Response) => {
     try {
         // Destructure registration data from the request body.
@@ -124,12 +126,6 @@ export const register = async (req: Request, res: Response) => {
 }
 
 
-// Returns 200 status.
-export const validateLogin = (req: Request, res: Response) => {
-    return res.sendStatus(200);
-}
-
-
 /**
  * Verify the user's identity based on the JWT data and return user information.
  */
@@ -154,18 +150,11 @@ export const verifyUser = async (req: Request, res: Response) => {
 };
 
 
+/**
+ * Logs out the user by clearing the "auth_token" cookie.
+ */
 export const logoutUser = async (req: Request, res: Response) => {
     try {
-        console.log("Logout user");
-        const user = await getUser(res.locals.jwtData!.username);
-        if (!user) {
-            return res.status(404).send("User not found. Logout failed");
-        }
-        if (user.id !== res.locals.jwtData!.userId) {
-            console.log("user.id", user.id, " | jwtData.userId", res.locals.jwtData!.userId);
-            return res.status(401).send("Unauthorized");
-        }
-
         res.clearCookie("auth_token" , {
             httpOnly: true,
             domain: "localhost",
