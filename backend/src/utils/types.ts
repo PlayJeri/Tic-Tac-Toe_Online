@@ -23,3 +23,12 @@ export interface DecodedAccessToken {
     iat: number;
     exp: number;
 }
+
+export interface UserDatabase {
+    id: number;
+    username: string;
+    password: string;
+    wins: number;
+    losses: number;
+    timePlayedSeconds: number;
+}
