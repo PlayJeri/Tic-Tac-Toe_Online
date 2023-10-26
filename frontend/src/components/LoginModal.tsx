@@ -22,6 +22,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
 
     useEffect(() => {
         if (authContext?.user) {
+            console.log("User found");
             setShowModal(false);
         }
     }, [])

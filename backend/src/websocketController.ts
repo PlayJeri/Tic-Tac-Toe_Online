@@ -247,7 +247,6 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
         // If there's a winner, update scores and log the winner and loser
         if (winner) {
             const loser = roomUsers.find(user => user.username !== username);
-            console.log('Winner:', winner.username, 'Loser:', loser?.username);
             addScores(winner, loser!);
         }
 
@@ -393,9 +392,6 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
         return; // If the other user (friend) doesn't exist, exit the function.
     }
 
-    // Log the message being sent to the friend
-    console.log('Friend request message sent to', friend.username);
-
     // Send the friend request message to the friend's WebSocket connection
     friend.ws.send(JSON.stringify(message));
 
@@ -422,7 +418,6 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
 const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
     // Parse the message data to extract the winner information
     const { winner } = JSON.parse(data).payload;
-    console.log(`Winner IS ${winner}`);
 
     // Find the index of the disconnected user in the queuedUsers array
     const userIndex = queuedUsers.findIndex(user => user.ws === ws);
@@ -435,8 +430,6 @@ const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
     const roomUsers = rooms[roomIndex]?.users;
 
     if (roomIndex !== -1) {
-        console.log("Number of rooms = ", rooms.length);
-
         // Find the user who disconnected and the other user in the room
         const disconnectedUser = roomUsers.find(user => user.ws === ws);
         const otherUser = roomUsers.find(user => user.ws !== ws);
@@ -449,9 +442,6 @@ const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
 
         // Remove the room from the rooms array
         rooms.splice(roomIndex, 1);
-
-        console.log("Number of rooms = ", rooms.length);
-        console.log('Room closed');
 
         // If there is another user and the disconnected user and a winner, update scores
         if (otherUser && disconnectedUser && winner) {

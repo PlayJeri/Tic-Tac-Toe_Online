@@ -9,6 +9,5 @@ export const createToken = (userId: number, username: string, expiresIn: string)
     const token = jwt.sign(payload, process.env.SECRET_KEY!, {
         expiresIn,
     });
-    console.log("Token:", token); 
     return token;
 };
