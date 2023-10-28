@@ -1,7 +1,7 @@
 .chat-box {
     display: flex;
     flex-direction: column;
-    width: 600px; /* Adjust the width as needed */
+    height: 350px;
     border: 1px solid #ccc;
     border-radius: 5px;
     overflow: hidden;
@@ -10,7 +10,7 @@
 .chat-messages {
     flex-grow: 1;
     padding: 10px;
-    overflow-y: auto; /* Enable vertical scrolling for messages */
+    overflow-y: auto;
 }
   
 .chat-message {
