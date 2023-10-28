@@ -35,7 +35,6 @@ export class Room {
         this.nextChar = this.nextChar === "X" ? "O" : "X";
         this.lastIndex = parseInt(index);
         this.currentTurn = this.users.find(user => user.username !== this.currentTurn)?.username || '';
-        console.log(this.gameState);
     }
 
     /**
@@ -51,7 +50,7 @@ export class Room {
      * @param connectedUser - User with current turn
      * @returns {User | null} - The winning user or null if there is no winner yet.
      */
-    calculateWinner(connectedUser: User): User | null {
+    calculateWinner(currentUser: User): User | null {
         const winningLines: number[][] = [
             [0, 1, 2],
             [3, 4, 5],
@@ -65,7 +64,7 @@ export class Room {
         for (const line of winningLines) {
             const [a, b, c] = line;
             if (this.gameState[a] && this.gameState[a] === this.gameState[b] && this.gameState[a] === this.gameState[c]) {
-                return connectedUser;
+                return currentUser;
             }
         }
         return null;
