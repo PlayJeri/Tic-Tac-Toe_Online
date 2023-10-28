@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { LoginModal } from "./LoginModal";
 import { AlertComponent } from "./Alert";
-import { Container, Nav, NavDropdown, Navbar } from "react-bootstrap";
+import { Container, Nav, Navbar } from "react-bootstrap";
 import logo from "../assets/ttt-bg.png";
 
 
