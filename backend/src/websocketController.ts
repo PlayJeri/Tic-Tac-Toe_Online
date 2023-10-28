@@ -4,7 +4,7 @@ import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
-import { acceptPendingFriendship, addScores, createMatchHistoryRecord, createPendingFriendship, getUser } from "./utils/prismaHelpers";
+import { acceptPendingFriendship, addDraw, addScores, createMatchHistoryRecord, createPendingFriendship, getUser } from "./utils/prismaHelpers";
 
 // Load environment variables
 dotenv.config();
@@ -48,7 +48,6 @@ wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage
  * @param {WebSocket} ws - The WebSocket connection.
  */
 const handleIncomingMessage = (data: string, ws: WebSocket) => {
-    console.log("data", data.toString());
     try {
         // Determine messages type and call the corresponding handler function.
         const { type } = JSON.parse(data);
@@ -224,53 +223,65 @@ const handleQueueUserMessage = (ws: WebSocket, data: string) => {
  * @param {string} data - The message data in JSON format.
  */
 const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
-    // Parse the message data to extract relevant information
-    const { roomName, index, username }: NewMove = JSON.parse(data).payload;
+    try {
+        // Parse the message data to extract relevant information
+        const { roomName, index, username }: NewMove = JSON.parse(data).payload;
 
-    // Find the room to update based on the roomName
-    const roomToUpdate = rooms.find(room => room.name === roomName);
+        // Find the room to update based on the roomName
+        const roomToUpdate = rooms.find(room => room.name === roomName);
 
-    if (roomToUpdate) {
-        // Update the game state with the new move
-        roomToUpdate.setGameState(index);
+        if (roomToUpdate) {
+            // Update the game state with the new move
+            roomToUpdate.setGameState(index);
 
-        // Get the users in the room
-        const roomUsers = roomToUpdate.users;
+            // Get the users in the room
+            const roomUsers = roomToUpdate.users;
 
-        // Find the user who made the move
-        const user = roomUsers.find(user => user.username === username);
+            // Find the user who made the move
+            const currentUser = roomUsers.find(user => user.username === username);
+            const otherUser = roomUsers.find(user => user.username !== username);
 
-        // Calculate the winner and check for a draw
-        const winner = roomToUpdate.calculateWinner(user!);
-        const draw = roomToUpdate.checkDraw();
+            // Calculate the winner and check for a draw
+            const winner = roomToUpdate.calculateWinner(currentUser!);
+            const draw = roomToUpdate.checkDraw();
 
-        // If there's a winner, update scores and log the winner and loser
-        if (winner) {
-            const loser = roomUsers.find(user => user.username !== username);
-            if (!loser) return;
-            addScores(winner, loser);
+            // If there's a winner, update scores and log the winner and loser
+            if (winner || draw) {
 
-            const winnerDb = await getUser(winner.username);
-            const loserDb = await getUser(loser.username)
-            if (!winnerDb || !loserDb) return;
-            createMatchHistoryRecord(winnerDb, loserDb);
-        }
-
-        // Prepare and send a message to each user in the room
-        roomUsers.forEach(user => {
-            const message = {
-                type: 'GAME_UPDATED',
-                message: {
-                    playerTurn: roomToUpdate.currentTurn,
-                    gameState: roomToUpdate.gameState,
-                    lastIndex: roomToUpdate.lastIndex,
-                    nextCharacter: roomToUpdate.nextChar,
-                    winner: winner?.username,
-                    draw: draw
+                if (winner) {
+                    addScores(currentUser!, otherUser!);
                 }
-            };
-            user.ws.send(JSON.stringify(message));
-        });
+
+                if (draw) {
+                    addDraw(currentUser!, otherUser!);
+                }
+
+                const winnerDb = await getUser(currentUser!.username);
+                const loserDb = await getUser(otherUser!.username)
+
+                const res = await createMatchHistoryRecord(winnerDb!, loserDb!, draw);
+            }
+
+            // Prepare and send a message to each user in the room
+            console.log(draw);
+            console.log("Send messages");
+            roomUsers.forEach(user => {
+                const message = {
+                    type: 'GAME_UPDATED',
+                    message: {
+                        playerTurn: roomToUpdate.currentTurn,
+                        gameState: roomToUpdate.gameState,
+                        lastIndex: roomToUpdate.lastIndex,
+                        nextCharacter: roomToUpdate.nextChar,
+                        winner: winner?.username,
+                        draw: draw
+                    }
+                };
+                user.ws.send(JSON.stringify(message));
+            });
+        }
+    } catch(error) {
+        console.error("Error with handle new move:", error);
     }
 }
 
