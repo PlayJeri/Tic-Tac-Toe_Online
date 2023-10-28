@@ -87,6 +87,42 @@ export async function addScores(winner: User, loser: User) {
     }
 }
 
+
+export async function addDraw(user1: User, user2: User) {
+    try {
+        const user1TimePlayed = (Date.now() - user1.ws.connectionStartTime!) / 1000;
+        const user2TimePlayed = (Date.now() - user2.ws.connectionStartTime!) / 1000;
+        await prisma.user.update({
+            where: {
+                username: user1.username
+            },
+            data: {
+                draws: {
+                    increment: 1
+                },
+                timePlayedSeconds: {
+                    increment: user1TimePlayed
+                }
+            }
+        });
+        await prisma.user.update({
+            where: {
+                username: user2.username
+            },
+            data: {
+                draws: {
+                    increment: 1
+                },
+                timePlayedSeconds: {
+                    increment: user2TimePlayed
+                }
+            }
+        }); 
+    } catch(error) {
+        console.error("Error updating draw scores", error);
+    }
+}
+
 /**
  * Create a pending friendship between two users.
  * @param {number} currentUserId - The ID of the current user initiating the friendship.
@@ -150,14 +186,16 @@ export async function acceptPendingFriendship(currentUserId: number, requesterId
  * @param {UserDatabase} loser - User object from database
  * @returns - True if record is created successfully else void
  */
-export async function createMatchHistoryRecord(winner: UserDatabase, loser: UserDatabase): Promise<true | undefined> {
+export async function createMatchHistoryRecord(winner: UserDatabase, loser: UserDatabase, draw: boolean): Promise<true | undefined> {
     try {
+        console.log("MATCH HISTORY", winner.username, loser.username, draw);
         await prisma.matches.create({
             data: {
                 winnerId:       winner.id,
                 winnerUsername: winner.username,
                 loserId:        loser.id,
                 loserUsername:  loser.username,
+                draw:           draw,
             }
         });
 
@@ -180,6 +218,7 @@ export async function getUserMatchHistory(userId: number) {
             select: {
                 winnerUsername: true,
                 loserUsername: true,
+                draw: true,
                 matchTime: true,
             },
             orderBy: {
