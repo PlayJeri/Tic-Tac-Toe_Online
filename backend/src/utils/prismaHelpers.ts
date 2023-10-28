@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { User, UserDatabase } from "./types";
+import { MatchHistoryData, User, UserDatabase } from "./types";
 
 // Create a Prisma client instance.
 const prisma = new PrismaClient();
@@ -88,8 +88,14 @@ export async function addScores(winner: User, loser: User) {
 }
 
 
+/**
+ * Increment draw scores and time played on both users
+ * @param {User} user1 - User object to update
+ * @param {User} user2 - User object to update
+ */
 export async function addDraw(user1: User, user2: User) {
     try {
+        // Get time played in seconds by subtracting connection starts time from current time.
         const user1TimePlayed = (Date.now() - user1.ws.connectionStartTime!) / 1000;
         const user2TimePlayed = (Date.now() - user2.ws.connectionStartTime!) / 1000;
         await prisma.user.update({
@@ -184,7 +190,7 @@ export async function acceptPendingFriendship(currentUserId: number, requesterId
  * Creates database record with match time and ids + usernames of players
  * @param {UserDatabase} winner - User object from database
  * @param {UserDatabase} loser - User object from database
- * @returns - True if record is created successfully else void
+ * @returns {Promise<true | undefined>} - True if record is created successfully else undefined
  */
 export async function createMatchHistoryRecord(winner: UserDatabase, loser: UserDatabase, draw: boolean): Promise<true | undefined> {
     try {
@@ -205,8 +211,12 @@ export async function createMatchHistoryRecord(winner: UserDatabase, loser: User
     }
 };
 
-
-export async function getUserMatchHistory(userId: number) {
+/**
+ * Fetches requesters match history by the userId
+ * @param {number} userId - Id to search matches with
+ * @returns {Promise<MatchHistoryData[] | undefined>}
+ */
+export async function getUserMatchHistory(userId: number): Promise<MatchHistoryData[] | undefined> {
     try {
         const matchHistory = await prisma.matches.findMany({
             where: {
@@ -230,6 +240,5 @@ export async function getUserMatchHistory(userId: number) {
         return matchHistory;
     } catch (error) {
         console.error("Error getting users match history", error);
-        return false
     }
 };

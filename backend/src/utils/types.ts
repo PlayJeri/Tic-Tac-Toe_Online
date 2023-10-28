@@ -33,3 +33,10 @@ export interface UserDatabase {
     draws: number;
     timePlayedSeconds: number;
 }
+
+export interface MatchHistoryData {
+    winnerUsername: string;
+    loserUsername: string;
+    draw?: boolean;
+    matchTime: Date;
+}

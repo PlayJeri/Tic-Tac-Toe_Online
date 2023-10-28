@@ -76,9 +76,14 @@ export class Room {
      * @returns {boolean} - True if the game resets, false otherwise
      */
     resetGame(username: string): boolean {
+        // Adds user to play again list or return if he's already on the list.
         if (this.playAgain.includes(username)) return false;
         this.playAgain.push(username);
+
+        // Only one of the players have agreed to play again so return.
         if (this.playAgain.length < 2) return false;
+
+        // Both players have agreed to play again so reset the game and return true.
         this.gameState = Array(9).fill(null);
         this.currentTurn = this.users[Math.floor(Math.random() * 2)].username || '';
         this.lastIndex = null;

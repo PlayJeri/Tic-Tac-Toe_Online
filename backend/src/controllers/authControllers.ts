@@ -131,8 +131,11 @@ export const register = async (req: Request, res: Response) => {
  */
 export const verifyUser = async (req: Request, res: Response) => {
     try {
+        // Make sure jwt data exists or return 404 status.
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
+
         // Retrieve the user based on the JWT data
-        const user = await getUser(res.locals.jwtData!.username);
+        const user = await getUser(res.locals.jwtData.username);
 
         // Check if no user is found
         if (!user) {
