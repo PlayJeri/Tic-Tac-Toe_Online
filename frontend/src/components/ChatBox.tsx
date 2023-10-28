@@ -35,7 +35,7 @@ export const ChatBox: React.FC<ChatProps> = ({ messages, username, roomName }) =
     }
 
     return (
-        <div className='chat-box col-5' style={{ height: '400px', overflowY: 'auto' }}>
+        <div className='chat-box'>
             <div className='chat-messages'>
                 {messages.map((message, index) => (
                     <div key={index} className={`chat-message ${
