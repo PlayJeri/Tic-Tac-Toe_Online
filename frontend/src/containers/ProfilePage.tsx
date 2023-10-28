@@ -33,7 +33,7 @@ export const ProfilePage = () => {
             <Container className='text-white'>
                 <h1 className='text-center my-4'>{userData?.username} Profile</h1>
                 <Row className='justify-content-center'>
-                <Col className='col-3 mx-3'>
+                <Col className='my-3 col-3 col-xl-4 col-lg-5 col-md-6 col-sm-8 col-10'>
                     {userData ? (
                         <ProfileInfoListComponent 
                         wins={userData.wins}
@@ -46,7 +46,7 @@ export const ProfilePage = () => {
                         <p>Loading profile data...</p>
                     )}
                 </Col>
-                <Col className='col-3 mx-3'>
+                <Col className='my-3 col-3 col-xl-4 col-lg-5 col-md-6 col-sm-8 col-10'>
                     {matchHistoryData ? (
                         <MatchHistoryList 
                         matchHistory={matchHistoryData}
