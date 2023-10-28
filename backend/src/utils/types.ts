@@ -30,5 +30,6 @@ export interface UserDatabase {
     password: string;
     wins: number;
     losses: number;
+    draws: number;
     timePlayedSeconds: number;
 }

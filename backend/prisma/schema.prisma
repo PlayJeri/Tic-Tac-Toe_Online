@@ -16,6 +16,7 @@ model User {
   password String
   wins Int
   losses Int
+  draws Int @default(0)
   timePlayedSeconds Int @default(0)
 
   followed    Friends[] @relation("FollowedFriends")
@@ -46,6 +47,8 @@ model Matches {
   winnerUsername String
   loserId Int
   loserUsername String
+
+  draw Boolean @default(false)
   
   winner User @relation("matchWinner", fields: [winnerId], references: [id])
   loser  User @relation("matchLoser", fields:  [loserId], references:  [id])

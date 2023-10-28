@@ -17,6 +17,7 @@ export interface ProfileInfo {
     username: string;
     wins: number;
     losses: number;
+    draws: number;
     secondsPlayed: number;
 }
 
@@ -29,5 +30,6 @@ export interface ChatProps {
 export interface MatchHistoryData {
     winnerUsername: string;
     loserUsername: string;
+    draw?: boolean;
     matchTime: Date;
 }
