@@ -16,6 +16,7 @@ export const getProfile = async (req: Request, res: Response) => {
         username: user.username,
         wins: user.wins,
         losses: user.losses,
+        draws: user.draws,
         secondsPlayed: user.timePlayedSeconds
     });
 }
@@ -36,7 +37,7 @@ export const changePassword = async (req: Request, res: Response) => {
         const newPasswordHash = await bcrypt.hash(newPassword, 10);
         user.password = newPasswordHash
     
-        const passwordChangedSuccessfully = await updateUserPassword(username, newPassword);
+        await updateUserPassword(username, newPassword);
 
         return res.sendStatus(200);
     } catch (error) {
