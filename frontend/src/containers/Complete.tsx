@@ -216,29 +216,31 @@ export const Complete: React.FC = () => {
                         {winner ? <Button className="me-4" variant="primary" onClick={handleResetGame}>Play again</Button> : null}
                     </Col>
                 </Row>
-                <div className="row text-center justify-content-center">
+                <Row className="text-center justify-content-center">
                     <Col xs={4}>
                         <h5 className="mt-2">
                         {playAgain ? playAgain : null}
                         </h5>
                     </Col>
-                </div>
-                <div className="row text-center pt-5">
-                    <Col>
+                </Row>
+                <Row className="text-center justify-content-center pt-5">
+                    <Col lg={5} md={7} sm={9} xs={11} className="py-4 me-3">
                     {winner
                         ? null
                         :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
                     }
                         <GameBoard squares={gameState} onClick={handleClick} />
                     </Col>
-                <ChatBox
-                    username={username}
-                    roomName={roomName}
-                    messages={messages}
-                    />
-                </div>
+                    <Col lg={6} md={9} sm={11} xs={12} className="py-4 ms-3">
+                        <ChatBox
+                            username={username}
+                            roomName={roomName}
+                            messages={messages}
+                            />
+                    </Col>
+                </Row>
                 <Row>
-                    <Col className="text-center py-5">
+                    <Col className="text-center">
                         <Button onClick={addFriend}>
                             Add {roomName.split("+").find(name => name !== username)} as friend
                         </Button>
