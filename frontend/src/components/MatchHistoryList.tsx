@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, Col, ListGroup, Row } from 'react-bootstrap';
+import { Col, ListGroup, Row } from 'react-bootstrap';
 import { MatchHistoryData } from '../utils/types';
 
 interface MatchHistoryProps {
@@ -29,13 +29,16 @@ const formatMatchTimeAgo = (matchTime: Date) => {
 
 const MatchHistoryList: React.FC<MatchHistoryProps> = ({ matchHistory, username }) => {
   return (
-    <div style={{ maxHeight: '230px', overflowY: 'auto' }}>
+    <div style={{ maxHeight: '458px', overflowY: 'auto' }}>
     <ListGroup variant="">
       {matchHistory.map((match, index) => (
-        <ListGroup.Item key={index}>
+        <ListGroup.Item key={index} variant={match.draw ? "" : match.winnerUsername === username ? "success" : "danger"}>
             <Row className='text-center'>
             <div className={"fw-bold mx-auto"}>
-                {match.winnerUsername === username ? "Victory" : "Defeat"}
+                {match.draw 
+                ? "Draw"
+                : match.winnerUsername === username ? "Victory" : "Defeat"
+                }
             </div>
             </Row>
             <Row>
