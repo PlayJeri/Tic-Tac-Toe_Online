@@ -181,8 +181,12 @@ export async function getUserMatchHistory(userId: number) {
                 winnerUsername: true,
                 loserUsername: true,
                 matchTime: true,
-            }
-        })
+            },
+            orderBy: {
+                matchTime: 'desc'
+            },
+            take: 50,
+        });
 
         return matchHistory;
     } catch (error) {
