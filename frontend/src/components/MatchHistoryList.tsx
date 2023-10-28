@@ -42,12 +42,9 @@ const MatchHistoryList: React.FC<MatchHistoryProps> = ({ matchHistory, username 
             </div>
             </Row>
             <Row>
-                <Col className='d-flex justify-content-between'>
+                <Col className='d-flex justify-content-around'>
                     <span>
-                        {match.winnerUsername + " VS " + match.loserUsername}
-                    </span>
-                    <span>
-                        {formatMatchTimeAgo(match.matchTime)}
+                        {match.winnerUsername + " VS " + match.loserUsername + " | " + formatMatchTimeAgo(match.matchTime)}
                     </span>
                 </Col>
             </Row>
