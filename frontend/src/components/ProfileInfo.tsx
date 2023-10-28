@@ -15,7 +15,7 @@ export const ProfileInfoListComponent: React.FC<ProfileInfo> = ({ wins, losses, 
     return (
       <>
       <ListGroup as='ul'>
-        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center py-3'>
           <div className="fw-bold">
             Wins
           </div>
@@ -23,7 +23,7 @@ export const ProfileInfoListComponent: React.FC<ProfileInfo> = ({ wins, losses, 
             {wins}
           </Badge>
         </ListGroup.Item>
-        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center py-3'>
           <div className="fw-bold">
             Losses
           </div>
@@ -31,7 +31,15 @@ export const ProfileInfoListComponent: React.FC<ProfileInfo> = ({ wins, losses, 
             {losses}
           </Badge>
         </ListGroup.Item>
-        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center'>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center py-3'>
+          <div className="fw-bold">
+            Win ratio
+          </div>
+          <Badge bg='primary' pill>
+            {(wins / losses).toFixed(2)}
+          </Badge>
+        </ListGroup.Item>
+        <ListGroup.Item as='li' className='d-flex justify-content-between align-items-center py-3'>
           <div className="fw-bold">
             Time Played
           </div>

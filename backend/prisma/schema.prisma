@@ -18,8 +18,11 @@ model User {
   losses Int
   timePlayedSeconds Int @default(0)
 
-  followed Friends[] @relation("FollowedFriends")
-  follower Friends[] @relation("FollowerFriends")
+  followed    Friends[] @relation("FollowedFriends")
+  follower    Friends[] @relation("FollowerFriends")
+
+  matchesWon  Matches[] @relation("matchWinner")
+  matchesLost Matches[] @relation("matchLoser")
 }
 
 model Friends {
@@ -33,4 +36,17 @@ model Friends {
 
   follower User @relation("FollowerFriends", fields: [followedId], references: [id])
   followed User @relation("FollowedFriends", fields: [followerId], references: [id])
+}
+
+model Matches {
+  id Int @id @default(autoincrement())
+  matchTime DateTime @default(now())
+
+  winnerId Int
+  winnerUsername String
+  loserId Int
+  loserUsername String
+  
+  winner User @relation("matchWinner", fields: [winnerId], references: [id])
+  loser  User @relation("matchLoser", fields:  [loserId], references:  [id])
 }

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { WebSocketProvider } from './contextProviders/WebSocketContext'
 import { AuthProvider } from './contextProviders/AuthenticationContextProvider'
 
+// Define default settings for axios
 axios.defaults.baseURL = "http://localhost:3000";
 axios.defaults.withCredentials = true;
 

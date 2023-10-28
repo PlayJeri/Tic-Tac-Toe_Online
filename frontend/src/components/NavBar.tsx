@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { LoginModal } from "./LoginModal";
 import { AlertComponent } from "./Alert";
-import "../styles/NavBar.css"
 
 
 export const NavBar: React.FC = () => {

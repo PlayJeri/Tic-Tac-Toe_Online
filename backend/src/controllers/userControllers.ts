@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { getUser, createPendingFriendship, acceptPendingFriendship } from "../utils/prismaHelpers";
-import { handleFriendRequestMessage } from "../websocketController";
 
 
 export const addFriendship = async (req: Request, res: Response) => {
     try {
         const { newFriendUsername } = req.body;
-        const currentUserId = req.decodedToken.userId;
+        const currentUserId = res.locals.jwtData?.userId;
+        if (!currentUserId) return res.status(404).json({ error: "User ID not found on token" });
 
         const newFriend = await getUser(newFriendUsername);
 
@@ -14,7 +14,7 @@ export const addFriendship = async (req: Request, res: Response) => {
             return res.status(404).json({ error: "User not found" });
         }
 
-        const friendship = await createPendingFriendship(currentUserId, newFriend.id);
+        await createPendingFriendship(currentUserId, newFriend.id);
 
         return res.sendStatus(201);
 
@@ -27,16 +27,15 @@ export const addFriendship = async (req: Request, res: Response) => {
 
 export const acceptFriendshipRequest = async (req: Request, res: Response) => {
     try {
-        const currentUserId = req.decodedToken.userId;
+        const currentUserId = res.locals.jwtData?.userId;
+        if (!currentUserId) return res.status(404).json({ error: "User ID not found on token" });
         const { requesterUsername } = req.body;
 
         const requester = await getUser(requesterUsername);
 
         if (!requester) return res.status(404).json({ error: "Username not found" });
 
-        const friendship = await acceptPendingFriendship(currentUserId, requester.id);
-
-        handleFriendRequestMessage(currentUserId, requesterUsername);
+        await acceptPendingFriendship(currentUserId, requester.id);
 
         return res.sendStatus(201);
 

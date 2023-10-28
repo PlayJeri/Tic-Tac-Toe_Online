@@ -143,3 +143,50 @@ export async function acceptPendingFriendship(currentUserId: number, requesterId
         return error;
     }
 }
+
+/**
+ * Creates database record with match time and ids + usernames of players
+ * @param {UserDatabase} winner - User object from database
+ * @param {UserDatabase} loser - User object from database
+ * @returns - True if record is created successfully else void
+ */
+export async function createMatchHistoryRecord(winner: UserDatabase, loser: UserDatabase): Promise<true | undefined> {
+    try {
+        await prisma.matches.create({
+            data: {
+                winnerId:       winner.id,
+                winnerUsername: winner.username,
+                loserId:        loser.id,
+                loserUsername:  loser.username,
+            }
+        });
+
+        return true
+    } catch (error) {
+        console.error("Error creating match history record", error);
+    }
+};
+
+
+export async function getUserMatchHistory(userId: number) {
+    try {
+        const matchHistory = await prisma.matches.findMany({
+            where: {
+                OR: [
+                    { winnerId : userId },
+                    { loserId : userId }
+                ]
+            },
+            select: {
+                winnerUsername: true,
+                loserUsername: true,
+                matchTime: true,
+            }
+        })
+
+        return matchHistory;
+    } catch (error) {
+        console.error("Error getting users match history", error);
+        return false
+    }
+};

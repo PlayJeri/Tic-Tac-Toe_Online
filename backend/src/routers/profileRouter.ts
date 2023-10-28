@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateTokenMiddleware } from "../utils/middleware";
-import { changePassword, getProfile } from "../controllers/profileControllers";
+import { changePassword, getProfile, getMatchHistory } from "../controllers/profileControllers";
 
 const profileRouter = Router();
 
@@ -19,5 +19,10 @@ profileRouter.get('/', getProfile);
  */
 profileRouter.post('/password', changePassword);
 
+/**
+ * @route /profile/match-history
+ * @description Gets requesting users match history.
+ */
+profileRouter.get('/match-history', getMatchHistory);
 
 export default profileRouter;

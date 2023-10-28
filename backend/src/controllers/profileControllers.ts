@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { getUser, updateUserPassword } from "../utils/prismaHelpers";
+import { getUser, getUserMatchHistory, updateUserPassword } from "../utils/prismaHelpers";
 import { DecodedAccessToken, tokenPayload } from "../utils/types";
 import bcrypt from 'bcrypt';
 
@@ -44,3 +44,20 @@ export const changePassword = async (req: Request, res: Response) => {
         return res.status(500).json({ error: "Internal Server Error" });
     }
 }
+
+export const getMatchHistory = async (req: Request, res: Response) => {
+    try {
+        const currentUserId = res.locals.jwtData?.userId;
+        if (!currentUserId) return res.status(404).send("User ID not found on token");
+
+        const matchHistory = await getUserMatchHistory(currentUserId);
+        if (!matchHistory) {
+            return res.status(404).send("No match history found.");
+        }
+
+        return res.status(200).json(matchHistory);
+    } catch (error) {
+        console.error("Error in matchHistory controller", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};

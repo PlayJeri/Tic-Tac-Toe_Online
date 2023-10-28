@@ -25,3 +25,9 @@ export interface ChatProps {
     roomName: string;
     messages: { text: string; username: string; }[];
 }
+
+export interface MatchHistoryData {
+    winnerUsername: string;
+    loserUsername: string;
+    matchTime: Date;
+}

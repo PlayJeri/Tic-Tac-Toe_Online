@@ -1,9 +1,9 @@
 import axios from "axios";
+import { MatchHistoryData } from "../utils/types";
 
 
 export const loginUser = async (username: string, password: string) => {
     try {
-        console.log('login user', username, password);
         const res = await axios.post("/auth/login", { username, password });
         const data = await res.data;
         return data;
@@ -28,7 +28,19 @@ export const getProfileData = async () => {
         const data = await res.data;
         return data;
     } catch (error) {
-        throw error;
+        console.error("Error fetching profile data:", error);
+        return null;
+    }
+};
+
+export const getMatchHistory = async () => {
+    try {
+        const res = await axios.get("/profile/match-history");
+        const data: MatchHistoryData[] = await res.data;
+        return data;      
+    } catch (error) {
+        console.error("Error fetching match history:", error);
+        return null;
     }
 };
 

@@ -4,7 +4,7 @@ import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
-import { acceptPendingFriendship, addScores, createPendingFriendship, getUser } from "./utils/prismaHelpers";
+import { acceptPendingFriendship, addScores, createMatchHistoryRecord, createPendingFriendship, getUser } from "./utils/prismaHelpers";
 
 // Load environment variables
 dotenv.config();
@@ -247,7 +247,13 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
         // If there's a winner, update scores and log the winner and loser
         if (winner) {
             const loser = roomUsers.find(user => user.username !== username);
-            addScores(winner, loser!);
+            if (!loser) return;
+            addScores(winner, loser);
+
+            const winnerDb = await getUser(winner.username);
+            const loserDb = await getUser(loser.username)
+            if (!winnerDb || !loserDb) return;
+            createMatchHistoryRecord(winnerDb, loserDb);
         }
 
         // Prepare and send a message to each user in the room
