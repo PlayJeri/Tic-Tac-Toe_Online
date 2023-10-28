@@ -38,6 +38,7 @@ export const ProfilePage = () => {
                         <ProfileInfoListComponent 
                         wins={userData.wins}
                         losses={userData.losses}
+                        draws={userData.draws}
                         secondsPlayed={userData.secondsPlayed}
                         username={userData.username}
                         />
