@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { MatchHistoryData, User, UserDatabase } from "./types";
+import { MatchHistoryData, PendingFriendRequest, User, UserDatabase } from "./types";
 
 // Create a Prisma client instance.
 const prisma = new PrismaClient();
@@ -243,6 +243,13 @@ export async function getUserMatchHistory(userId: number): Promise<MatchHistoryD
     }
 };
 
+
+/**
+ * Checks if friendship already exists between user1 and user2
+ * @param {number} user1Id 
+ * @param {number} user2Id 
+ * @returns {boolean} True if friendship exists false if it doesn't
+ */
 export async function friendshipAlreadyExists(user1Id: number, user2Id: number) {
     try {
        // Check if a friendship exists where user1 follows user2 or user2 follows user1
@@ -261,6 +268,7 @@ export async function friendshipAlreadyExists(user1Id: number, user2Id: number) 
             },
         });
 
+        // Friendship already exists return true
         if (friendship) {
             return true;
         }
@@ -271,3 +279,34 @@ export async function friendshipAlreadyExists(user1Id: number, user2Id: number) 
         return false;
     }
 };
+
+/**
+ * Fetch pending friend requests from database with userId
+ * @param {number} userId 
+ * @returns {PendingFriendRequest[]} - List of pending requests if exists.
+ */
+export async function getPendingFriendRequests(userId: number) {
+    try {
+        const pendingRequests = await prisma.friends.findMany({
+            where: {
+                followedId: userId,
+                status: "pending"
+            },
+            select: {
+                followed: {
+                    select: {
+                        id: true,
+                        username: true,
+                    }
+                }
+            }
+        });
+
+        // Remove the follower parent from JSON leaving only the id and username object
+        const pendingRequestsSimple: PendingFriendRequest[] = pendingRequests.map(item => item.followed);
+
+        return pendingRequestsSimple;
+    } catch (error) {
+        console.error("Get pending requests error:", error);
+    }
+}
