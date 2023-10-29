@@ -4,7 +4,7 @@ import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
 import { User, NewMove, DecodedAccessToken } from "./utils/types";
 import { Room } from "./utils/Room";
-import { acceptPendingFriendship, addDraw, addScores, createMatchHistoryRecord, createPendingFriendship, getUser } from "./utils/prismaHelpers";
+import { acceptPendingFriendship, addDraw, addScores, createMatchHistoryRecord, createPendingFriendship, friendshipAlreadyExists, getUser } from "./utils/prismaHelpers";
 
 // Load environment variables
 dotenv.config();
@@ -393,6 +393,17 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
         return; // If the room doesn't exist, exit the function.
     }
 
+    // Find both users.
+    const receiverUsername = room.users.find(user => user.username !== username);
+    if (!receiverUsername) return;
+    const requester = await getUser(username);
+    const receiver = await getUser(receiverUsername.username);
+    if (!requester || !receiver) return;
+
+    // If friendship already exists return
+    const friendshipExists = await friendshipAlreadyExists(requester.id, receiver.id);
+    if (friendshipExists) return;
+
     // Create a friend request message to send to the other user
     const message = {
         type: 'FRIEND_REQUEST',
@@ -402,27 +413,8 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
         }
     };
 
-    // Find the other user (the potential friend) in the room
-    const friend = room.users.find(user => user.username !== username);
-
-    if (!friend) {
-        return; // If the other user (friend) doesn't exist, exit the function.
-    }
-
-    // Send the friend request message to the friend's WebSocket connection
-    friend.ws.send(JSON.stringify(message));
-
-    // Retrieve user data for the sender (username) and the potential friend
-    const user = await getUser(username);
-    const friendUser = await getUser(friend.username);
-
-    // Check if either user data is missing, and if so, exit the function.
-    if (!user || !friendUser) {
-        return;
-    }
-
     // Create a pending friendship between the two users
-    createPendingFriendship(user.id, friendUser.id);
+    createPendingFriendship(requester.id, receiver.id);
 }
 
 
