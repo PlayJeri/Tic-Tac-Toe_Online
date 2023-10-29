@@ -242,3 +242,32 @@ export async function getUserMatchHistory(userId: number): Promise<MatchHistoryD
         console.error("Error getting users match history", error);
     }
 };
+
+export async function friendshipAlreadyExists(user1Id: number, user2Id: number) {
+    try {
+       // Check if a friendship exists where user1 follows user2 or user2 follows user1
+       const friendship = await prisma.friends.findFirst({
+            where: {
+                OR: [
+                    {
+                        followerId: user1Id,
+                        followedId: user2Id,
+                    },
+                    {
+                        followerId: user2Id,
+                        followedId: user1Id,
+                    },
+                ],
+            },
+        });
+
+        if (friendship) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error("Friendship exists fetch error:", error);
+        return false;
+    }
+};
