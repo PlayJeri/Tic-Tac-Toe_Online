@@ -1,6 +1,8 @@
 import React from 'react';
-import { Col, ListGroup, Row } from 'react-bootstrap';
+import { Button, Col, ListGroup, Row } from 'react-bootstrap';
 import { MatchHistoryData } from '../utils/types';
+import { Dropdown } from 'react-bootstrap';
+import { sendFriendRequest } from '../helpers/apiCommunicator';
 
 interface MatchHistoryProps {
   matchHistory: MatchHistoryData[];
@@ -28,17 +30,31 @@ const formatMatchTimeAgo = (matchTime: Date) => {
   };
 
 const MatchHistoryList: React.FC<MatchHistoryProps> = ({ matchHistory, username }) => {
+
+  const handleSendFriendRequest = (username: string) => {
+    sendFriendRequest(username);
+  };
+
   return (
     <div style={{ maxHeight: '458px', overflowY: 'auto' }}>
     <ListGroup variant="">
       {matchHistory.map((match, index) => (
         <ListGroup.Item key={index} variant={match.draw ? "" : match.winnerUsername === username ? "success" : "danger"}>
             <Row className='text-center'>
-            <div className={"fw-bold mx-auto"}>
+            <div className="fw-bold d-flex">
+              <span className='mx-auto'>
                 {match.draw 
                 ? "Draw"
                 : match.winnerUsername === username ? "Victory" : "Defeat"
                 }
+              </span>
+                <Dropdown>
+                  <Dropdown.Toggle variant='light'>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleSendFriendRequest(match.winnerUsername !== username ? username! : match.loserUsername)}>Add {match.winnerUsername !== username ? username : match.loserUsername} as friend</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown.Toggle>
+                </Dropdown>
             </div>
             </Row>
             <Row>
