@@ -33,3 +33,8 @@ export interface MatchHistoryData {
     draw?: boolean;
     matchTime: Date;
 }
+
+export interface FriendRequestData {
+    id: number;
+    username: string;
+}
