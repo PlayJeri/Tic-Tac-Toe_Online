@@ -40,3 +40,8 @@ export interface MatchHistoryData {
     draw?: boolean;
     matchTime: Date;
 }
+
+export interface PendingFriendRequest {
+        id: number;
+        username: string;
+}
