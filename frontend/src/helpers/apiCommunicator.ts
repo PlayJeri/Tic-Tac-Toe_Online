@@ -64,3 +64,14 @@ export const logoutUser = async () => {
         throw error;
     }
 }
+
+
+export const sendFriendRequest = async (newFriendUsername: string) => {
+    try {
+        const res = await axios.post("/user/follow", { newFriendUsername });
+        const data = await res.data;
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
