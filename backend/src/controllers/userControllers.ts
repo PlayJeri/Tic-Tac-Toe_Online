@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getUser, createPendingFriendship, acceptPendingFriendship } from "../utils/prismaHelpers";
+import { getUser, createPendingFriendship, acceptPendingFriendship, friendshipAlreadyExists } from "../utils/prismaHelpers";
 
 
 export const addFriendship = async (req: Request, res: Response) => {
@@ -15,6 +15,11 @@ export const addFriendship = async (req: Request, res: Response) => {
         const newFriend = await getUser(newFriendUsername);
         if (!newFriend) {
             return res.status(404).json({ error: "User not found" });
+        }
+
+        const friendshipExists = await friendshipAlreadyExists(currentUserId, newFriend.id);
+        if (friendshipExists) {
+            return res.status(400).send("Friendship already exists");
         }
 
         // Create pending friendship in database.
