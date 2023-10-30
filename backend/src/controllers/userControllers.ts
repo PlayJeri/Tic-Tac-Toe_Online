@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { getUser, createPendingFriendship, acceptPendingFriendship, friendshipAlreadyExists, getPendingFriendRequests } from "../utils/prismaHelpers";
-import { PendingFriendRequest } from "../utils/types";
+import { getUser, createPendingFriendship, acceptPendingFriendship, friendshipAlreadyExists, getPendingFriendRequests, getFriendships } from "../utils/prismaHelpers";
+import { PendingFriendRequest, UserFriendship } from "../utils/types";
 
 
 export const addFriendship = async (req: Request, res: Response) => {
     try {
         // Makes sure jwtData exists or send 404 status
-        if (!res.locals.jwtData) return res.sendStatus(404).send("Token data not found");
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
 
         // Extract username and id
         const { newFriendUsername } = req.body;
@@ -40,7 +40,7 @@ export const addFriendship = async (req: Request, res: Response) => {
 export const acceptFriendshipRequest = async (req: Request, res: Response) => {
     try {
         // Makes sure jwtData exists or send 404 status
-        if (!res.locals.jwtData) return res.sendStatus(404).send("Token data not found");
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
 
         // Extract username and id.
         const currentUserId = res.locals.jwtData.userId;
@@ -66,7 +66,7 @@ export const acceptFriendshipRequest = async (req: Request, res: Response) => {
 export const checkPendingFriendRequests = async (req: Request, res: Response) => {
     try {
         // Makes sure jwtData exists or send 404 status
-        if (!res.locals.jwtData) return res.sendStatus(404).send("Token data not found");
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
 
         // Extract username and id.
         const currentUserId = res.locals.jwtData.userId;
@@ -81,6 +81,25 @@ export const checkPendingFriendRequests = async (req: Request, res: Response) =>
         return res.status(200).json(pendingRequests);
     } catch (error) {
         console.error("Check pending friend requests error:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+};
+
+
+/**
+ * Fetch all friendships of current user from database.
+ * @returns {UserFriendship[], UserPendingFriendship[]} - All friendships of the current user
+ */
+export const getAllFriendships = async (req: Request, res: Response) => {
+    try {
+        // Makes sure jwtData exists or send 404 status
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
+
+        const friendships = await getFriendships(res.locals.jwtData.userId);
+
+        return res.status(200).json(friendships);
+    } catch (error) {
+        console.error("Get all friendships error:", error);
         return res.status(500).send("Internal Server Error");
     }
 };
