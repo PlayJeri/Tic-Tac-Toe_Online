@@ -1,5 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { checkAuthStatus, loginUser, logoutUser, registerUser } from "../helpers/apiCommunicator";
+import { acceptFriendRequest, checkAuthStatus, fetchFriendRequests, loginUser, logoutUser, registerUser } from "../helpers/apiCommunicator";
+import { FriendRequestData } from "../utils/types";
 
 // Define the interface of the user object
 interface User {
@@ -14,6 +15,10 @@ interface UserAuth {
     login: (username: string, password: string) => Promise<any>; // Function to log in a user
     register: (username: string, password: string, retypePassword: string) => Promise<any>; // Function to register a user
     logout: () => Promise<any>; // Function to log out a user
+    acceptFriend: (index: number, userId: number) => void;
+    closeRequest: (index: number) => void;
+    requests: FriendRequestData[] | null;
+    showRequests: boolean[];
 }
 
 // Create an authentication context with an initial value of null
@@ -27,6 +32,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // State to manage user information and authentication status
     const [user, setUser] = useState<User | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [requests, setRequests] = useState<FriendRequestData[] | null>([]);
+    const [showRequests, setShowRequests] = useState<boolean[]>([]);
 
     // UseEffect to check the authentication status when the component mounts
     useEffect(() => {
@@ -48,6 +55,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         setUser({ username: data.username, id: data.id });
         setIsLoggedIn(true);
+
+        await fetchPendingRequests();
     };
 
     // Function to log out a user
@@ -77,13 +86,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    // Fetch pending requests from database using helper function.
+    const fetchPendingRequests = async () => {
+        try {
+            // Fetch and set the requests 
+            const friendRequests: FriendRequestData[] = await fetchFriendRequests()
+            setRequests(friendRequests);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // Send request using helper to accept friend request and set requests show to false
+    const acceptFriend = async (index: number, userId: number) => {
+        const updatedRequests = [...showRequests];
+        updatedRequests[index] = false;
+        setShowRequests(updatedRequests);
+
+        await acceptFriendRequest(userId);
+    }
+
+    // Handles the closing of request by setting show to false
+    const closeRequest = async (index: number) => {
+        const updatedRequests = [...showRequests];
+        updatedRequests[index] = false;
+        setShowRequests(updatedRequests);
+    }
+
     // Create the context value to provide to the context consumers
     const contextValue = {
         user,
         isLoggedIn,
         login,
         logout,
-        register
+        register,
+        requests,
+        showRequests,
+        acceptFriend,
+        closeRequest,
     };
 
     // Return the AuthProvider with the context value wrapping the children
