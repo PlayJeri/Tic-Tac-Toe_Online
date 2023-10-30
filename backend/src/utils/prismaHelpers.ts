@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { MatchHistoryData, PendingFriendRequest, User, UserDatabase } from "./types";
+import { MatchHistoryData, PendingFriendRequest, User, UserDatabase, UserFriendship } from "./types";
 
 // Create a Prisma client instance.
 const prisma = new PrismaClient();
@@ -308,5 +308,44 @@ export async function getPendingFriendRequests(userId: number) {
         return pendingRequestsSimple;
     } catch (error) {
         console.error("Get pending requests error:", error);
+    }
+}
+
+
+/**
+ * Fetch friendships of a user
+ * @param {number} userId - Id of user whose friendships to fetch
+ * @returns {UserFriendship[]}
+ */
+export async function getFriendships(userId: number) {
+    try {
+        const friendships = await prisma.friends.findMany({
+            where: {
+                followerId: userId,
+            }, select: {
+                status: true,
+                follower: {
+                    select: {
+                        username: true,
+                        id: true,
+                    }
+                }
+            }
+        })
+
+
+        const friendshipSimple: UserFriendship[] = friendships.map(friend => {
+            return {
+                status: friend.status,
+                username: friend.follower.username,
+                id: friend.follower.id,
+            };
+        });
+
+
+        return friendshipSimple;
+    } catch (error) {
+        console.error("Get friendships error:", error);
+        throw error;
     }
 }

@@ -51,8 +51,3 @@ export interface UserFriendship {
     username: string;
     id: number;
 }
-
-export interface UserPendingFriendship {
-    username: string;
-    id: number;
-}
