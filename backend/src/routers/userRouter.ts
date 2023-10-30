@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateTokenMiddleware } from "../utils/middleware";
-import { acceptFriendshipRequest, addFriendship, checkPendingFriendRequests } from "../controllers/userControllers";
+import { acceptFriendshipRequest, addFriendship, checkPendingFriendRequests, getAllFriendships } from "../controllers/userControllers";
 
 const userRouter = Router();
 
@@ -24,5 +24,11 @@ userRouter.post('/accept', acceptFriendshipRequest);
  * @description Checks if pending requests exist in database and return them.
  */
 userRouter.get('/pending', checkPendingFriendRequests);
+
+/**
+ * @route /user/friendships
+ * @description Fetches all friendships of the requesting user.
+ */
+userRouter.get('/friendships', getAllFriendships);
 
 export default userRouter;
