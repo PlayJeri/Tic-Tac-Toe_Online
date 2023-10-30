@@ -44,14 +44,13 @@ export const acceptFriendshipRequest = async (req: Request, res: Response) => {
 
         // Extract username and id.
         const currentUserId = res.locals.jwtData.userId;
-        const { requesterUsername } = req.body;
+        const { friendId } = req.body;
 
         // Fetch user object from data or send 404 status.
-        const requester = await getUser(requesterUsername);
-        if (!requester) return res.status(404).send("User not found");
+        if (!friendId) return res.status(404).send("Friend Id not found");
 
         // Updates the pending friendship to accepted.
-        await acceptPendingFriendship(currentUserId, requester.id);
+        await acceptPendingFriendship(currentUserId, friendId);
 
         return res.sendStatus(201);
     } catch (error) {
