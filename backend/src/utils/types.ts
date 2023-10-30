@@ -45,3 +45,18 @@ export interface PendingFriendRequest {
         id: number;
         username: string;
 }
+
+export interface UserFriendship {
+    status: string;
+    follower: {
+        username: string;
+        id: number;
+    }
+}
+
+export interface UserPendingFriendship {
+    followed: {
+        username: string;
+        id: number;
+    }
+}
