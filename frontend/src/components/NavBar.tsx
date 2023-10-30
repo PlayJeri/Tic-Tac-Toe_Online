@@ -5,6 +5,8 @@ import { AlertComponent } from "./Alert";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import logo from "../assets/ttt-bg.png";
 
+import FriendRequestToast from "./FriendRequestToast";
+
 
 export const NavBar: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
@@ -48,6 +50,7 @@ export const NavBar: React.FC = () => {
         message={alertMessage}
       />
       : null}
+      <FriendRequestToast />
     </>
     );      
 }
