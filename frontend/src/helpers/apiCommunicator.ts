@@ -75,3 +75,26 @@ export const sendFriendRequest = async (newFriendUsername: string) => {
         throw error;
     }
 }
+
+
+export const fetchFriendRequests = async () => {
+    try {
+        const res = await axios.get("user/pending");
+        const data = await res.data;
+        console.log("Request data:", data);
+        if (data) return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+export const acceptFriendRequest = async (userId: number) => {
+    try {
+        const res = await axios.post("user/accept", { friendId: userId });
+        if (res.status !== 201) return false;
+        return true;
+    } catch (error) {
+        throw error;
+    }
+}
