@@ -74,6 +74,8 @@ export const ProfilePage = () => {
                         <FriendList
                             friendList={friendData}
                             pendingFriendList={pendingFriendData}
+                            setPendingFriendList={setPendingFriendData}
+                            setFriendList={setFriendData}
                         />
                     ) : (
                         <p>Loading friend data...</p>
