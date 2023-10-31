@@ -100,6 +100,17 @@ export const acceptFriendRequest = async (userId: number) => {
 }
 
 
+export const deleteFriendship = async (userId: number) => {
+    try {
+        const res = await axios.post("user/remove-friend", { friendId: userId })
+        if (res.status !== 204) return false;
+        return true;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
 export const getFriendData = async () => {
     try {
         const res = await axios.get("user/friendships");
