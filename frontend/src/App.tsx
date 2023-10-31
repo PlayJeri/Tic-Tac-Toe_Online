@@ -6,11 +6,7 @@ import { RegisterPage } from './containers/Register'
 import { ProfilePage } from './containers/ProfilePage'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-import { useAuthContext } from './contextProviders/AuthenticationContextProvider'
-
 const App: React.FC = () => {
-  console.log("user is logged in",useAuthContext()?.isLoggedIn);
-
   return (
     <Router>
       <Routes>

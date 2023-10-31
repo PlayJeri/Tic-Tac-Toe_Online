@@ -41,7 +41,6 @@ export const Complete: React.FC = () => {
         }
 
         return () => {
-            console.log('remove listener')
             handleDisconnect();
         };
 
@@ -64,9 +63,7 @@ export const Complete: React.FC = () => {
 
         ws.onmessage = (event) => {
             const { type, message } = JSON.parse(event.data);
-            console.log(type, "|", message)
             if (type == 'START_GAME') {
-                console.log("game started");
                 setSearching(false);
                 setRoomName(message.roomName);
                 if (message.starter === contextUsername) {
@@ -89,7 +86,6 @@ export const Complete: React.FC = () => {
                 setGameState(message.gameState);
             }
             if (type === 'GAME_RESET') {
-                console.log('Game reset');
                 setWinner(null);
                 setGameState(message.gameState);
                 setGameStarted(true);
@@ -102,7 +98,6 @@ export const Complete: React.FC = () => {
                 setMessages(prevMessages => [...prevMessages, { text: message.message, username: message.username }]);
             }
             if (type === 'PLAY_AGAIN') {
-                console.log(message);
                 setPlayAgain(message.text);
             }
             if (type === 'OPPONENT_DISCONNECTED') {
@@ -122,7 +117,6 @@ export const Complete: React.FC = () => {
     }
 
     const showFriendReqToast = (message: string) => {
-        console.log("message is", message);
         setToast(message);
         toggleShowToast();
     }
@@ -131,7 +125,6 @@ export const Complete: React.FC = () => {
         if (!yourTurn) {
             return;
         }
-        console.log("NEW MOVE MESSAGE", username);
         webSocket?.send(JSON.stringify({ 
             type: "NEW_MOVE",
             payload: {

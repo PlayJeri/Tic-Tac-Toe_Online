@@ -23,7 +23,6 @@ export const ProfilePage = () => {
 
             const matchHistoryResponse = await getMatchHistory();
             if (matchHistoryResponse) {
-                console.log(matchHistoryResponse);
                 setMatchHistoryData(matchHistoryResponse);
             }
 

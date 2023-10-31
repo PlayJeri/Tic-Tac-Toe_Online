@@ -81,7 +81,6 @@ export const fetchFriendRequests = async () => {
     try {
         const res = await axios.get("user/pending");
         const data = await res.data;
-        console.log("Request data:", data);
         if (data) return data;
     } catch (error) {
         throw error;

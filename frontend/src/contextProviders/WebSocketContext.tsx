@@ -28,7 +28,6 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     // Function to send a new user message over WebSocket
     const sendNewUserMessage = (username: string) => {
         if (webSocket) {
-            console.log('Sending a new user message');
             const message = {
                 type: 'NEW_USER',
                 payload: {
