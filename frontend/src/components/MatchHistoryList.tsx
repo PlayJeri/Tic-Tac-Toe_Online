@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Col, ListGroup, Row } from 'react-bootstrap';
+import { Col, ListGroup, Row } from 'react-bootstrap';
 import { MatchHistoryData } from '../utils/types';
 import { Dropdown } from 'react-bootstrap';
 import { sendFriendRequest } from '../helpers/apiCommunicator';
@@ -37,7 +37,7 @@ const MatchHistoryList: React.FC<MatchHistoryProps> = ({ matchHistory, username 
 
   return (
     <div style={{ maxHeight: '458px', overflowY: 'auto' }}>
-    <ListGroup variant="">
+    <ListGroup>
       {matchHistory.map((match, index) => (
         <ListGroup.Item key={index} variant={match.draw ? "" : match.winnerUsername === username ? "success" : "danger"}>
             <Row className='text-center'>
