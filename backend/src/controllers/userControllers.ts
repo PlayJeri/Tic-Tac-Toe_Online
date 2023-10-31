@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import { getUser, createPendingFriendship, acceptPendingFriendship, friendshipAlreadyExists, getPendingFriendRequests, getFriendships } from "../utils/prismaHelpers";
-import { PendingFriendRequest, UserFriendship } from "../utils/types";
+import { getUser, createPendingFriendship, acceptPendingFriendship, friendshipAlreadyExists, getPendingFriendRequests, getFriendships, deleteFriendshipFromDb } from "../utils/prismaHelpers";
 
 
 export const addFriendship = async (req: Request, res: Response) => {
@@ -100,6 +99,29 @@ export const getAllFriendships = async (req: Request, res: Response) => {
         return res.status(200).json(friendships);
     } catch (error) {
         console.error("Get all friendships error:", error);
+        return res.status(500).send("Internal Server Error");
+    }
+};
+
+
+export const deleteFriendship = async (req: Request, res: Response) => {
+    try {
+        // Makes sure jwtData exists or send 404 status
+        if (!res.locals.jwtData) return res.status(404).send("Token data not found");
+        
+        // Extract user IDs
+        const currentUserId = res.locals.jwtData.userId;
+        const { friendId } = req.body;
+
+        // Delete the pending request from database. If request isn't found return 404 status.
+        const pendingRequestDeleted = await deleteFriendshipFromDb(currentUserId, friendId);
+        if (!pendingRequestDeleted) {
+            return res.status(404).send("No pending friendship found");
+        }
+
+        return res.status(204).send("Pending request deleted");
+    } catch (error) {
+        console.error("Delete pending friend request error:", error);
         return res.status(500).send("Internal Server Error");
     }
 };
