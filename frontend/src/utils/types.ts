@@ -38,3 +38,9 @@ export interface FriendRequestData {
     id: number;
     username: string;
 }
+
+export interface FriendListData {
+    status?: string;
+    username: string;
+    id: number;
+}
