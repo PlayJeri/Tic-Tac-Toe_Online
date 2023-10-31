@@ -1,6 +1,6 @@
 import { Card, Dropdown, ListGroup } from 'react-bootstrap'
 import { FriendListData } from '../utils/types'
-import { acceptFriendRequest } from '../helpers/apiCommunicator';
+import { acceptFriendRequest, deleteFriendship } from '../helpers/apiCommunicator';
 
 
 interface FriendListProps {
@@ -10,7 +10,7 @@ interface FriendListProps {
     setFriendList: (newList: FriendListData[]) => void;
 }
 
-const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, setPendingFriendList }) => {
+const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, setPendingFriendList, setFriendList }) => {
 
     const handleAcceptFriendRequestClick = async (friendId: number) => {
         const acceptFriendResponse = await acceptFriendRequest(friendId);
@@ -22,8 +22,24 @@ const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, 
         }
     };
 
+    const handleDeclineFriendRequestClick = async (friendId: number) => {
+        const declineFriendResponse = await deleteFriendship(friendId);
+        if (declineFriendResponse) {
+            const updatedPendingFriends = pendingFriendList.filter(friend => friend.id !== friendId);
+            setPendingFriendList(updatedPendingFriends);
+        } else {
+            console.error("Decline friend request error");
+        }
+    }
+
     const handleRemoveFriendRequestClick = async (friendId: number) => {
-        // TODO: Add the logic here and create apiCommunicator helper and backend logic.
+        const deleteFriendResponse = await deleteFriendship(friendId);
+        if (deleteFriendResponse) {
+            const updatedFriends = friendList.filter(friend => friend.id !== friendId);
+            setFriendList(updatedFriends);
+        } else {
+            console.error("Delete friendship failed");
+        }
     };
 
     return (
@@ -83,7 +99,9 @@ const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, 
                         <Dropdown.Item onClick={() => handleAcceptFriendRequestClick(friend.id)}>
                             Accept friend
                         </Dropdown.Item>
-                        <Dropdown.Item>Decline request</Dropdown.Item>
+                        <Dropdown.Item onClick={() => handleDeclineFriendRequestClick(friend.id)}>
+                            Decline request
+                        </Dropdown.Item>
                     </Dropdown.Menu>
                     </Dropdown.Toggle>
                 </Dropdown>
