@@ -81,7 +81,7 @@ const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, 
             Pending friend requests
         </Card.Header>
     <ListGroup as="ul" style={{overflowY: "auto", maxHeight: "135px"}}>
-        {pendingFriendList ? pendingFriendList.map((friend) => (
+        {pendingFriendList.length > 0 ? pendingFriendList.map((friend) => (
         <ListGroup.Item
             key={friend.id}
             as="li"
@@ -107,7 +107,7 @@ const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, 
                 </Dropdown>
         </ListGroup.Item>
         )):
-        <p>No pending requests</p>
+        <p className='text-center pt-3'>No pending requests</p>
         }
         </ListGroup>
     </Card>
