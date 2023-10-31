@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { validateTokenMiddleware } from "../utils/middleware";
-import { acceptFriendshipRequest, addFriendship, checkPendingFriendRequests, getAllFriendships } from "../controllers/userControllers";
+import { acceptFriendshipRequest, addFriendship, checkPendingFriendRequests, deleteFriendship, getAllFriendships } from "../controllers/userControllers";
 
 const userRouter = Router();
 
@@ -18,6 +18,12 @@ userRouter.post('/follow', addFriendship);
  * @description Creates accepted friend request and changes pending request to accepted.
  */
 userRouter.post('/accept', acceptFriendshipRequest);
+
+/**
+ * @route /user/remove-friend
+ * @description Decline pending request and remove it from database.
+ */
+userRouter.post('/remove-friend', deleteFriendship);
 
 /**
  * @route /user/pending
