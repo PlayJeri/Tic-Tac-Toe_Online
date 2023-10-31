@@ -349,3 +349,25 @@ export async function getFriendships(userId: number) {
         throw error;
     }
 }
+
+
+/**
+ * Deletes pending friendship between two users bu their id's.
+ * @param {number} userId 
+ * @param {number} friendId 
+ * @returns {boolean} - True if deleted false if not found.
+ */
+export async function deleteFriendshipFromDb(userId: number, friendId: number) {
+    const deleted = await prisma.friends.deleteMany({
+        where: {
+            OR: [
+                {followedId: userId, followerId: friendId},
+                {followerId: userId, followedId: friendId}
+            ]
+        }
+    })
+    if (deleted.count === 0) {
+        return false;
+    }
+    return true;
+}
