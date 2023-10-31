@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MatchHistoryData } from "../utils/types";
+import { FriendListData, MatchHistoryData } from "../utils/types";
 
 
 export const loginUser = async (username: string, password: string) => {
@@ -98,3 +98,15 @@ export const acceptFriendRequest = async (userId: number) => {
         throw error;
     }
 }
+
+
+export const getFriendData = async () => {
+    try {
+        const res = await axios.get("user/friendships");
+        if (res.status !== 200) return false;
+        const data: FriendListData[] = await res.data;
+        return data
+    } catch (error) {
+        throw error;
+    }
+};
