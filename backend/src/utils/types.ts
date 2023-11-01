@@ -42,8 +42,8 @@ export interface MatchHistoryData {
 }
 
 export interface PendingFriendRequest {
-        id: number;
-        username: string;
+    id: number;
+    username: string;
 }
 
 export interface UserFriendship {
