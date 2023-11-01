@@ -1,6 +1,6 @@
 # Tic-Tac-Toe Web Game
 
-![Tic-Tac-Toe Screenshot](images/screenshot.png)
+![Tic-Tac-Toe Screenshot](images/cover.png)
 
 ## Table of Contents
 
@@ -12,21 +12,22 @@
 
 ## Description
 
-A real-time Tic-Tac-Toe web game that allows players to compete, chat with each other, and track their game history and stats. Built with TypeScript, React, Express, Prisma, and WebSocket.
+A real-time Tic-Tac-Toe web game that allows players to compete and chat with each other, and track their game history and stats. Built with TypeScript using React and Express. Game state and chat messages are sent through websocket connection to enable real time communication while REST API handles authentication and user data. Frontend uses mostly bootstrap components for styles but some components like the chat box and game board are custom built.
 
 ## Technologies Used
 
 - Frontend: TypeScript, React, Bootstrap, Axios
 - Backend: TypeScript, Express
 - Database: SQLite with Prisma
-- Real-time: WebSocket(ws)
+- Real-time: WebSockets
 
 ## Features
 
 - Authentication & authorization using JWT and context managers
 - Real-time Tic-Tac-Toe gameplay with chat functionality using web sockets.
 - User profile page showing match statistics, recent match history, friend list, and pending friend requests.
-- Friend request toasts 
+- Friend request toasts
+- Responsive design
 
 ## Database Entity-Relationship Diagram
 
@@ -38,7 +39,9 @@ A real-time Tic-Tac-Toe web game that allows players to compete, chat with each 
 
 ## Screenshots
 
-![Screenshot 1](/path/to/your/screenshot1.png)
+![Game play](images/gameplay.png)
 
-![Screenshot 2](/path/to/your/screenshot2.png)
+![Friend request toast](images/friendToast.png)
+
+![Profile data](images/profile.png)
 
