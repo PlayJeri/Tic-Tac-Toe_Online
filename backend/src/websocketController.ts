@@ -393,6 +393,7 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
             user: username
         }
     };
+    receiverUsername.ws.send(JSON.stringify(message));
 
     // Create a pending friendship between the two users
     createPendingFriendship(requester.id, receiver.id);
