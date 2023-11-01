@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useContext, useState, useEffect } from "react";
-import { checkAuthStatus } from "../helpers/apiCommunicator";
+import { useAuthContext } from "./AuthenticationContextProvider";
 
 // Define the interface for the WebSocket context
 interface WebSocketContextType {
@@ -24,6 +24,7 @@ export const useWebSocketContext = () => {
 export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     // State to manage the WebSocket connection
     const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
+    const authContext = useAuthContext();
 
     // Function to send a new user message over WebSocket
     const sendNewUserMessage = (username: string) => {
@@ -42,15 +43,14 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         // Function to check the user's authentication status
         async function checkStatus() {
-            const data = await checkAuthStatus(); // Check user's authentication status
-            if (!data) return; // If not authenticated, return early
+            if (!authContext?.isLoggedIn || !authContext.user?.username) return;
             // Establish a WebSocket connection to the specified URL
             const wsConn = new WebSocket(`ws://localhost:3000`);
             setWebSocket(wsConn); // Set the WebSocket instance in the state
-            sendNewUserMessage(data.username); // Send a new user message with the authenticated username
+            sendNewUserMessage(authContext.user?.username); // Send a new user message with the authenticated username
         }
         checkStatus(); // Execute the checkStatus function when the component mounts
-    }, []);
+    }, [authContext?.isLoggedIn]);
 
     // Create the context value to provide to the context consumers
     const contextValue = {
