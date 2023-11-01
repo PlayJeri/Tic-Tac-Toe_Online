@@ -1,14 +1,10 @@
 import { WebSocketServer, WebSocket } from "ws";
-import dotenv from 'dotenv';
 import { Server as HttpServer, IncomingMessage } from 'http';
 import { MessageType } from "./utils/clientMessages";
-import { User, NewMove, DecodedAccessToken } from "./utils/types";
+import { User, NewMove } from "./utils/types";
 import { Room } from "./utils/Room";
 import { acceptPendingFriendship, addDraw, addScores, createMatchHistoryRecord, createPendingFriendship, friendshipAlreadyExists, getUser } from "./utils/prismaHelpers";
 
-// Load environment variables
-dotenv.config();
-const secretKey = process.env.SECRET_KEY!;
 
 // Initialize new web socket server
 const wss = new WebSocketServer({ noServer: true });
@@ -31,13 +27,7 @@ wss.on('connection', function connection(ws: WebSocket, request: IncomingMessage
 
     // Handle WebSocket closing
     ws.on('close', () => {
-        const data = {
-            type: "DISCONNECTED",
-            payload: {
-                winner: null,
-            }
-        }
-        handleClose(ws, JSON.stringify(data));
+        handleClose(ws);
     })
 })
 
@@ -74,7 +64,7 @@ const handleIncomingMessage = (data: string, ws: WebSocket) => {
                 handleAcceptFriendRequest(ws, data);
                 break;
             case MessageType.DISCONNECTED:
-                handleDisconnectionFromGame(ws, data);
+                handleDisconnectionFromGame(ws);
                 break;
             default:
                 console.log("Unknown message type: ", type);
@@ -120,22 +110,15 @@ function onSocketError(err: Error): void {
  * 
  * @param {WebSocket} ws - WebSocket connection that has been closed.
  */
-const handleClose = (ws: WebSocket, data: string) => {
+const handleClose = (ws: WebSocket) => {
     // Find and remove the disconnected user from connected users.
     const userIndexConnected = connectedUsers.findIndex(user => user.ws === ws);
     if (userIndexConnected !== -1) {
         connectedUsers.splice(userIndexConnected, 1);
     }
 
-    // Find and remove the disconnected user from queued users.
-    const userIndexQueued = queuedUsers.findIndex(user => user.ws === ws);
-    if (userIndexQueued !== -1) {
-        const username = queuedUsers[userIndexQueued].username;
-        queuedUsers.splice(userIndexQueued, 1);
-    }
-
     // Handles disconnection from game if user is in one.
-    handleDisconnectionFromGame(ws, data);
+    handleDisconnectionFromGame(ws);
 }
 
 /**
@@ -263,8 +246,6 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
             }
 
             // Prepare and send a message to each user in the room
-            console.log(draw);
-            console.log("Send messages");
             roomUsers.forEach(user => {
                 const message = {
                     type: 'GAME_UPDATED',
@@ -424,11 +405,8 @@ export const handleFriendRequestMessage = async (ws: WebSocket, data: string) =>
  * @param {WebSocket} ws - The WebSocket connection.
  * @param {string} data - The message data in JSON format.
  */
-const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
-    // Parse the message data to extract the winner information
-    const { winner } = JSON.parse(data).payload;
-
-    // Find the index of the disconnected user in the queuedUsers array
+const handleDisconnectionFromGame = async (ws: WebSocket) => {
+    // Find the disconnected user is queuedUsers and remove it.
     const userIndex = queuedUsers.findIndex(user => user.ws === ws);
     if (userIndex !== -1) {
         queuedUsers.splice(userIndex, 1);
@@ -453,8 +431,13 @@ const handleDisconnectionFromGame = async (ws: WebSocket, data: string) => {
         rooms.splice(roomIndex, 1);
 
         // If there is another user and the disconnected user and a winner, update scores
-        if (otherUser && disconnectedUser && winner) {
-            addScores(otherUser, disconnectedUser);
+        if (otherUser && disconnectedUser) {
+            await addScores(otherUser, disconnectedUser);
+
+            const otherUserDb = await getUser(otherUser.username);
+            const disconnectedUserDb = await getUser(disconnectedUser.username);
+            if (!otherUserDb || !disconnectedUserDb) return;
+            await createMatchHistoryRecord(otherUserDb, disconnectedUserDb, false);
         }
     }
 };
