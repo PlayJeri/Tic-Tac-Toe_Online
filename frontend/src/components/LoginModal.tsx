@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
@@ -12,20 +12,9 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
-    const [showModal, setShowModal] = useState(false);
     const [showLoginFailedAlert, setShowLoginFailedAlert] = useState(false);
     const wsContext = useWebSocketContext();
     const authContext = useAuthContext();
-
-    const handleModalClose = () => setShowModal(false);
-    const handleModalOpen = () => setShowModal(true);
-
-    useEffect(() => {
-        if (authContext?.user) {
-            setShowModal(false);
-        }
-    }, [])
-
 
     const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         try {
@@ -36,7 +25,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
             await authContext?.login(username, password); 
 
             showCustomAlert("Login successful!", "success");
-            setShowModal(false);
 
             const wsConn = new WebSocket(`ws://localhost:3000`);
             wsContext.setWebSocket(wsConn);
@@ -55,18 +43,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ showCustomAlert}) => {
                     Logout
                 </Button>
             :
-                <Button variant="outline-success" onClick={handleModalOpen}>
+                <Button variant="outline-success" >
                     Login
                 </Button>
             }
 
             <Modal
-                show={showModal}
-                onHide={handleModalClose}
+                show={!authContext?.isLoggedIn}
                 backdrop="static"
                 keyboard={false}
             >
-                <Modal.Header closeButton>
+                <Modal.Header>
                     <Modal.Title>Log in</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
