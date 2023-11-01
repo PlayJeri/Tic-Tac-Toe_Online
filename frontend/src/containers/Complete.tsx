@@ -34,9 +34,6 @@ export const Complete: React.FC = () => {
         const handleDisconnect = () => {
             wsContext.webSocket?.send(JSON.stringify({
                 type: "DISCONNECTED",
-                payload: {
-                    winner: winner
-                }
             }))
         }
 
@@ -44,7 +41,7 @@ export const Complete: React.FC = () => {
             handleDisconnect();
         };
 
-    }, [, location])
+    }, [location])
 
     const handleConnect = () => {
         setSearching(true);
@@ -52,7 +49,6 @@ export const Complete: React.FC = () => {
         if (!ws) return;
 
         const contextUsername = authContext?.user?.username;
-        console.log(contextUsername, "connected to WebSocket server");
         if (!contextUsername) return;
         ws.send(JSON.stringify({
             type: 'QUEUE_USER',
@@ -101,7 +97,7 @@ export const Complete: React.FC = () => {
                 setPlayAgain(message.text);
             }
             if (type === 'OPPONENT_DISCONNECTED') {
-                setWinner(`Opponent disconnected! ${username}`);
+                setWinner(`Opponent disconnected! ${authContext.user?.username}`);
                 setYourTurn(false);
             }
             if (type === 'FRIEND_REQUEST') {
@@ -218,10 +214,10 @@ export const Complete: React.FC = () => {
                 </Row>
                 <Row className="text-center justify-content-center pt-5">
                     <Col lg={5} md={7} sm={9} xs={11} className="py-4 me-3">
-                    {winner
-                        ? null
-                        :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
-                    }
+                        {winner
+                            ? null
+                            :<h2>{yourTurn ? "Your turn" : "Wait for your turn"}</h2> 
+                        }
                         <GameBoard squares={gameState} onClick={handleClick} />
                     </Col>
                     <Col lg={6} md={9} sm={11} xs={12} className="py-4 ms-3">
