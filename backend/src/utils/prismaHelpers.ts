@@ -194,7 +194,6 @@ export async function acceptPendingFriendship(currentUserId: number, requesterId
  */
 export async function createMatchHistoryRecord(winner: UserDatabase, loser: UserDatabase, draw: boolean): Promise<true | undefined> {
     try {
-        console.log("MATCH HISTORY", winner.username, loser.username, draw);
         await prisma.matches.create({
             data: {
                 winnerId:       winner.id,
