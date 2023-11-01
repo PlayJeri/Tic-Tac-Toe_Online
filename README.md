@@ -24,7 +24,7 @@ A real-time Tic-Tac-Toe web game that allows players to compete and chat with ea
 ## Features
 
 - Authentication & authorization using JWT and context managers
-- Real-time Tic-Tac-Toe gameplay with chat functionality using web sockets.
+- Real-time Tic-Tac-Toe game play with chat functionality using web sockets.
 - User profile page showing match statistics, recent match history, friend list, and pending friend requests.
 - Friend request toasts
 - Responsive design
