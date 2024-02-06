@@ -17,9 +17,8 @@ A real-time Tic-Tac-Toe web game that allows players to compete and chat with ea
 ## Technologies Used
 
 - Frontend: TypeScript, React, Bootstrap, Axios
-- Backend: TypeScript, Express
+- Backend: TypeScript, Express, WebSockets
 - Database: SQLite with Prisma
-- Real-time: WebSockets
 
 ## Features
 
@@ -44,4 +43,3 @@ A real-time Tic-Tac-Toe web game that allows players to compete and chat with ea
 ![Friend request toast](images/friendToast.png)
 
 ![Profile data](images/profile.png)
-
