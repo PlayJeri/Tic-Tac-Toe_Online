@@ -236,6 +236,7 @@ const handleNewMoveMessage = async (ws: WebSocket, data: string) => {
                 }
 
                 if (draw) {
+                    console.log("DRAW");
                     addDraw(currentUser!, otherUser!);
                 }
 

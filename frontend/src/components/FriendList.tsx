@@ -80,7 +80,7 @@ const FriendList: React.FC<FriendListProps> = ({ friendList, pendingFriendList, 
         <Card.Header className='text-center'>
             Pending friend requests
         </Card.Header>
-    <ListGroup as="ul" style={{overflowY: "auto", maxHeight: "135px"}}>
+    <ListGroup as="ul" style={{overflowY: "auto", height: "135px"}}>
         {pendingFriendList.length > 0 ? pendingFriendList.map((friend) => (
         <ListGroup.Item
             key={friend.id}
